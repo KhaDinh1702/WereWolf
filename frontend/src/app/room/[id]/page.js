@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSocket } from '@/context/SocketContext';
+import AboutModal from '@/app/components/AboutModal';
 
 export default function GameRoomPage() {
   const params = useParams();
@@ -20,6 +21,7 @@ export default function GameRoomPage() {
   const [seerReveal, setSeerReveal] = useState(null); // { targetName, role }
   const [showRole, setShowRole] = useState(false);
   const [activeTab, setActiveTab] = useState('chat'); // 'chat' | 'logs'
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
   
   const chatEndRef = useRef(null);
 
@@ -171,7 +173,13 @@ export default function GameRoomPage() {
             <h1 className="font-serif-gothic text-xl text-primary uppercase tracking-widest font-semibold blood-glow">Sảnh chờ nghi lễ</h1>
             <p className="text-xs text-on-surface-variant/80 font-mono-gothic mt-0.5">ID PHÒNG: <span className="text-primary font-bold tracking-widest">{room.roomId}</span></p>
           </div>
-          <div className="text-right">
+          <div className="text-right flex items-center gap-4">
+            <button 
+              onClick={() => setIsAboutOpen(true)}
+              className="text-xs font-serif-gothic text-[#e9c349] hover:text-white uppercase tracking-widest cursor-pointer border border-outline-variant/30 hover:border-[#e9c349]/50 px-3 py-1 rounded transition-all bg-black/40"
+            >
+              LUẬT CHƠI
+            </button>
             <span className="text-xs font-serif-gothic text-primary/70 uppercase tracking-widest">Chờ đồng bọn ({room.players.length})</span>
           </div>
         </div>
@@ -185,7 +193,13 @@ export default function GameRoomPage() {
             <h1 className="font-serif-gothic text-lg text-white uppercase tracking-widest font-bold">NGHI LỄ KẾT THÚC</h1>
             <p className="text-xs text-primary/80 font-mono-gothic">Phòng: {room.roomId}</p>
           </div>
-          <div className="text-right">
+          <div className="text-right flex items-center gap-4">
+            <button 
+              onClick={() => setIsAboutOpen(true)}
+              className="text-xs font-serif-gothic text-[#e9c349] hover:text-white uppercase tracking-widest cursor-pointer border border-outline-variant/30 hover:border-[#e9c349]/50 px-3 py-1 rounded transition-all bg-black/40"
+            >
+              LUẬT CHƠI
+            </button>
             <span className="text-lg font-serif-gothic text-primary uppercase font-bold blood-glow">
               PHE {room.winner === 'WEREWOLF' ? 'MA SÓI' : 'DÂN LÀNG'} CHIẾN THẮNG!
             </span>
@@ -231,6 +245,12 @@ export default function GameRoomPage() {
         </div>
         
         <div className="flex items-center gap-4 self-end md:self-auto">
+          <button 
+            onClick={() => setIsAboutOpen(true)}
+            className="text-xs font-serif-gothic text-[#e9c349] hover:text-white uppercase tracking-widest cursor-pointer border border-outline-variant/30 hover:border-[#e9c349]/50 px-3 py-1 rounded transition-all bg-black/40"
+          >
+            LUẬT CHƠI
+          </button>
           <div className="text-right">
             <span className="block text-xs font-mono-gothic uppercase tracking-wider text-on-surface-variant">Thời gian còn lại</span>
             <span className={`font-mono-gothic text-2xl font-bold ${timeLeft <= 10 ? 'text-red-500 animate-pulse' : 'text-primary'}`}>
@@ -646,6 +666,8 @@ export default function GameRoomPage() {
         )}
 
       </aside>
+
+      <AboutModal isOpen={isAboutOpen} onClose={() => setIsAboutOpen(false)} />
     </div>
   );
 }

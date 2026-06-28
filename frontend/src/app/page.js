@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSocket } from '@/context/SocketContext';
+import AboutModal from './components/AboutModal';
 
 export default function LobbyPage() {
   const router = useRouter();
@@ -12,6 +13,7 @@ export default function LobbyPage() {
   const [playerId, setPlayerId] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
 
   // Initialize playerId from sessionStorage or generate one
   useEffect(() => {
@@ -197,7 +199,10 @@ export default function LobbyPage() {
 
         {/* Footer info button */}
         <div className="mt-auto pt-4 px-6 border-t border-outline-variant/20 mx-4">
-          <button className="group w-full flex items-center justify-center gap-2 text-zinc-500 hover:text-[#e9c349] py-2 transition-colors cursor-pointer text-xs font-serif-gothic tracking-widest uppercase">
+          <button 
+            onClick={() => setIsAboutOpen(true)}
+            className="group w-full flex items-center justify-center gap-2 text-zinc-500 hover:text-[#e9c349] py-2 transition-colors cursor-pointer text-xs font-serif-gothic tracking-widest uppercase"
+          >
             ABOUT GAME
             <span className="opacity-0 group-hover:opacity-100 transition-all duration-300 text-primary text-[10px] -translate-x-1.5 group-hover:translate-x-0">
               ▶
@@ -205,6 +210,8 @@ export default function LobbyPage() {
           </button>
         </div>
       </aside>
+
+      <AboutModal isOpen={isAboutOpen} onClose={() => setIsAboutOpen(false)} />
     </div>
   );
 }
