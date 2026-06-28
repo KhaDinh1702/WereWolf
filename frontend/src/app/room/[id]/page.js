@@ -149,6 +149,19 @@ export default function GameRoomPage() {
     setChatInput('');
   };
 
+  const handleLeaveRoom = () => {
+    if (socket && isConnected) {
+      socket.emit('leave_room', { roomId, playerId }, (response) => {
+        router.push('/');
+      });
+      setTimeout(() => {
+        router.push('/');
+      }, 500);
+    } else {
+      router.push('/');
+    }
+  };
+
   // Helper rendering for current phase banner
   const renderPhaseBanner = () => {
     if (room.status === 'LOBBY') {
@@ -332,7 +345,7 @@ export default function GameRoomPage() {
               {/* Start/Exit Button area */}
               <div className="mt-auto border-t border-outline-variant/20 pt-6 flex justify-between items-center px-4">
                 <button 
-                  onClick={() => router.push('/')}
+                  onClick={handleLeaveRoom}
                   className="group bg-transparent text-zinc-400 hover:text-red-500 font-serif-gothic text-sm py-2.5 px-6 border border-outline-variant/30 hover:border-red-500/50 transition-all duration-300 uppercase tracking-widest cursor-pointer flex items-center gap-2"
                 >
                   RỜI PHÒNG
@@ -500,7 +513,7 @@ export default function GameRoomPage() {
               {room.status === 'FINISHED' && (
                 <div className="mt-6 border-t border-outline-variant pt-6 flex justify-center">
                   <button 
-                    onClick={() => router.push('/')}
+                    onClick={handleLeaveRoom}
                     className="bg-secondary text-white font-serif-gothic text-base py-3 px-8 border-2 border-secondary hover:bg-primary-container transition-colors blood-glow-box uppercase tracking-widest cursor-pointer"
                   >
                     QUAY VỀ SẢNH CHỜ

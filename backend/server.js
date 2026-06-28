@@ -582,6 +582,45 @@ io.on('connection', (socket) => {
     }
   });
 
+  // 8. Leave Room
+  socket.on('leave_room', async ({ roomId, playerId }, callback) => {
+    try {
+      const room = await Room.findOne({ roomId });
+      if (room) {
+        const playerIndex = room.players.findIndex(p => p.playerId === playerId);
+        if (playerIndex !== -1) {
+          if (room.status === 'LOBBY' || room.status === 'FINISHED') {
+            room.players.splice(playerIndex, 1);
+            
+            if (room.players.length === 0) {
+              clearPhaseTimer(room.roomId);
+              await Room.deleteOne({ _id: room._id });
+              console.log(`Room ${roomId} deleted as it became empty after player left`);
+            } else {
+              if (room.hostId === playerId) {
+                room.hostId = room.players[0].playerId;
+              }
+              await room.save();
+              broadcastRoomState(room.roomId);
+              console.log(`Player ${playerId} left lobby/finished room ${roomId}`);
+            }
+          } else {
+            // If active game, just offline them by unsetting socketId
+            room.players[playerIndex].socketId = '';
+            await room.save();
+            broadcastRoomState(room.roomId);
+            console.log(`Player ${playerId} marked offline in active room ${roomId}`);
+          }
+        }
+      }
+      socket.leave(roomId);
+      if (callback) callback({ success: true });
+    } catch (error) {
+      console.error('Leave room error:', error);
+      if (callback) callback({ success: false, error: 'Không thể rời phòng.' });
+    }
+  });
+
   // Disconnect
   socket.on('disconnect', async () => {
     console.log(`Socket disconnected: ${socket.id}`);
