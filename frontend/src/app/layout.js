@@ -1,5 +1,6 @@
 import './globals.css';
 import { SocketProvider } from '@/context/SocketContext';
+import SoundProvider from '@/app/components/SoundProvider';
 
 export const metadata = {
   title: 'Ma Sói - Nghi Thức Bóng Đêm',
@@ -11,7 +12,9 @@ export default function RootLayout({ children }) {
     <html lang="vi" className="dark h-full">
       <body className="h-full bg-background text-on-background antialiased overflow-hidden">
         <SocketProvider>
-          {children}
+          <SoundProvider>
+            {children}
+          </SoundProvider>
         </SocketProvider>
       </body>
     </html>
