@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Noto+Serif:wght@400;600;700&family=Courier+Prime:wght@400;700&family=Literata:wght@400;600&display=swap');
+
+@import "tailwindcss";
+
+
+@theme {
+  --color-background: #0e0e0e;
+  --color-on-background: #e5e2e1;
+  --color-primary: #ffb4a8;
+  --color-secondary: #8b0000;
+  --color-surface: #131313;
+  --color-surface-container: #201f1f;
+  --color-surface-container-lowest: #0e0e0e;
+  --color-surface-container-low: #1c1b1b;
+  --color-surface-container-high: #2a2a2a;
+  --color-outline-variant: #5a403c;
+  --color-primary-container: #8b0000;
+  --color-on-surface-variant: #e3beb8;
+  --color-error: #ffb4ab;
+  --color-error-container: #93000a;
+  
+  --font-serif-gothic: "Cinzel", serif;
+  --font-body-gothic: "Literata", serif;
+  --font-mono-gothic: "Courier Prime", monospace;
+}
+
+:root {
+  --background: #0e0e0e;
+  --foreground: #e5e2e1;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: "Literata", serif;
+}
+
+/* Custom Gothic styling class declarations */
+.textured-bg {
+  background-color: #0e0e0e;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+.demonic-bg {
+  background-color: #8b0000;
+  background-image: radial-gradient(circle at center, rgba(14, 14, 14, 0.4) 0%, #0e0e0e 100%);
+}
+
+.border-gothic {
+  border: 2px solid #8b0000;
+  position: relative;
+}
+
+.input-inset {
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.9);
+  background-color: #0e0e0e;
+  color: #ffb4a8;
+  border: 2px solid #8b0000;
+}
+
+.input-inset:focus {
+  border-color: #ffb4a8;
+  outline: none;
+  box-shadow: inset 0 2px 8px rgba(139,0,0,0.2), 0 0 10px rgba(139,0,0,0.5);
+}
+
+.blood-glow {
+  text-shadow: 0 0 15px rgba(139,0,0,1);
+}
+
+.blood-glow-box {
+  box-shadow: 0 0 15px rgba(139,0,0,0.4);
+}
+
+.blood-glow-box:hover {
+  box-shadow: 0 0 25px rgba(139,0,0,0.8);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0e0e0e; 
+}
+::-webkit-scrollbar-thumb {
+  background: #8b0000; 
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #ffb4a8; 
+}
