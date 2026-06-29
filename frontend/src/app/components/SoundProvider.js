@@ -44,6 +44,7 @@ const saveSoundSettings = ({ volume, isMuted }) => {
 export default function SoundProvider({ children }) {
   const buttonAudioRef = useRef(null);
   const bgAudioRef = useRef(null);
+  const audioContextRef = useRef(null);
   const hasStartedBgRef = useRef(false);
   const volumeRef = useRef(DEFAULT_VOLUME);
   const mutedRef = useRef(DEFAULT_MUTED);
@@ -85,6 +86,94 @@ export default function SoundProvider({ children }) {
     bgAudioRef.current.muted = mutedRef.current || volumeRef.current === 0;
     bgAudioRef.current.loop = true;
 
+    const getAudioContext = () => {
+      if (!audioContextRef.current) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return null;
+        audioContextRef.current = new AudioContextClass();
+      }
+      return audioContextRef.current;
+    };
+
+    const playTone = ({ frequency, duration = 0.35, type = 'sine', gain = 0.16, delay = 0 }) => {
+      if (mutedRef.current || volumeRef.current === 0) return;
+
+      const audioContext = getAudioContext();
+      if (!audioContext) return;
+
+      const startTime = audioContext.currentTime + delay;
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.type = type;
+      oscillator.frequency.setValueAtTime(frequency, startTime);
+      gainNode.gain.setValueAtTime(0, startTime);
+      gainNode.gain.linearRampToValueAtTime(gain * volumeRef.current, startTime + 0.025);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      oscillator.start(startTime);
+      oscillator.stop(startTime + duration + 0.03);
+    };
+
+    const playEffect = (effect) => {
+      if (mutedRef.current || volumeRef.current === 0) return;
+
+      const audioContext = getAudioContext();
+      audioContext?.resume?.();
+
+      switch (effect) {
+        case 'night':
+          playTone({ frequency: 92, duration: 0.9, type: 'sawtooth', gain: 0.12 });
+          playTone({ frequency: 138, duration: 0.7, type: 'sine', gain: 0.08, delay: 0.16 });
+          break;
+        case 'day':
+          playTone({ frequency: 392, duration: 0.28, type: 'triangle', gain: 0.09 });
+          playTone({ frequency: 587, duration: 0.34, type: 'triangle', gain: 0.08, delay: 0.12 });
+          break;
+        case 'vote':
+        case 'mark':
+          playTone({ frequency: 128, duration: 0.18, type: 'square', gain: 0.14 });
+          playTone({ frequency: 74, duration: 0.32, type: 'sine', gain: 0.1, delay: 0.08 });
+          break;
+        case 'wolf':
+          playTone({ frequency: 58, duration: 0.42, type: 'sawtooth', gain: 0.18 });
+          playTone({ frequency: 87, duration: 0.36, type: 'sawtooth', gain: 0.11, delay: 0.05 });
+          break;
+        case 'seer':
+          playTone({ frequency: 523, duration: 0.24, type: 'sine', gain: 0.08 });
+          playTone({ frequency: 784, duration: 0.38, type: 'triangle', gain: 0.08, delay: 0.06 });
+          playTone({ frequency: 1046, duration: 0.3, type: 'sine', gain: 0.05, delay: 0.12 });
+          break;
+        case 'guard':
+          playTone({ frequency: 220, duration: 0.25, type: 'triangle', gain: 0.11 });
+          playTone({ frequency: 330, duration: 0.35, type: 'triangle', gain: 0.08, delay: 0.1 });
+          break;
+        case 'reveal':
+          playTone({ frequency: 196, duration: 0.18, type: 'triangle', gain: 0.08 });
+          playTone({ frequency: 392, duration: 0.34, type: 'triangle', gain: 0.1, delay: 0.1 });
+          break;
+        case 'start':
+          playTone({ frequency: 110, duration: 0.32, type: 'sawtooth', gain: 0.12 });
+          playTone({ frequency: 220, duration: 0.45, type: 'triangle', gain: 0.1, delay: 0.16 });
+          break;
+        case 'end':
+          playTone({ frequency: 196, duration: 0.42, type: 'triangle', gain: 0.1 });
+          playTone({ frequency: 98, duration: 0.8, type: 'sine', gain: 0.1, delay: 0.18 });
+          break;
+        case 'whisper':
+          playTone({ frequency: 660, duration: 0.08, type: 'sine', gain: 0.035 });
+          break;
+        default:
+          break;
+      }
+    };
+
+    const handleSoundEffect = (event) => {
+      playEffect(event.detail?.effect);
+    };
+
     const handleInteraction = (e) => {
       if (
         !hasStartedBgRef.current &&
@@ -109,12 +198,15 @@ export default function SoundProvider({ children }) {
       } catch (_) {}
     };
 
+    window.addEventListener('werewolf_sound_effect', handleSoundEffect);
     document.addEventListener('click', handleInteraction);
     return () => {
+      window.removeEventListener('werewolf_sound_effect', handleSoundEffect);
       document.removeEventListener('click', handleInteraction);
       if (bgAudioRef.current) {
         bgAudioRef.current.pause();
       }
+      audioContextRef.current?.close?.();
     };
   }, []);
 

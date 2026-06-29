@@ -25,6 +25,41 @@ const ROLE_LABELS = {
 
 const getRoleLabel = (role) => ROLE_LABELS[role] || 'Chưa rõ';
 
+const PHASE_OVERLAYS = {
+  NIGHT: {
+    title: 'Đêm buông xuống',
+    subtitle: 'Mọi ánh mắt khép lại. Những vai trò trong bóng tối bắt đầu nghi lễ.',
+    tone: 'night'
+  },
+  DAY: {
+    title: 'Bình minh hé mở',
+    subtitle: 'Ngôi làng thức dậy và lần theo dấu vết còn sót lại trong đêm.',
+    tone: 'day'
+  },
+  VOTING: {
+    title: 'Giờ phán xét',
+    subtitle: 'Mỗi lá phiếu là một lời buộc tội. Hãy chọn thật cẩn trọng.',
+    tone: 'vote'
+  },
+  FINISHED: {
+    title: 'Nghi lễ kết thúc',
+    subtitle: 'Màn đêm khép lại, kẻ chiến thắng đã lộ diện.',
+    tone: 'end'
+  }
+};
+
+const getPhaseClass = (room) => {
+  if (!room) return 'game-stage-lobby';
+  if (room.status === 'FINISHED') return 'game-stage-finished';
+  if (room.status === 'LOBBY') return 'game-stage-lobby';
+  return `game-stage-${room.currentPhase.toLowerCase()}`;
+};
+
+const emitSoundEffect = (effect) => {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent('werewolf_sound_effect', { detail: { effect } }));
+};
+
 export default function GameRoomPage() {
   const params = useParams();
   const router = useRouter();
@@ -42,9 +77,11 @@ export default function GameRoomPage() {
   const [showRole, setShowRole] = useState(false);
   const [activeTab, setActiveTab] = useState('chat'); // 'chat' | 'logs'
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [phaseOverlay, setPhaseOverlay] = useState(null);
   
   const chatEndRef = useRef(null);
   const roomRef = useRef(null);
+  const lastPhaseKeyRef = useRef(null);
 
   useEffect(() => {
     roomRef.current = room;
@@ -131,6 +168,41 @@ export default function GameRoomPage() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const currentPhaseKey = room
+    ? room.status === 'FINISHED'
+      ? 'FINISHED'
+      : room.status === 'PLAYING'
+        ? room.currentPhase
+        : room.status
+    : null;
+
+  useEffect(() => {
+    if (!currentPhaseKey) return;
+
+    if (lastPhaseKeyRef.current && lastPhaseKeyRef.current !== currentPhaseKey) {
+      const overlay = PHASE_OVERLAYS[currentPhaseKey];
+      if (overlay) {
+        emitSoundEffect(overlay.tone);
+
+        const showTimerId = setTimeout(() => {
+          setPhaseOverlay(overlay);
+        }, 0);
+
+        const hideTimerId = setTimeout(() => {
+          setPhaseOverlay(null);
+        }, 2200);
+
+        lastPhaseKeyRef.current = currentPhaseKey;
+        return () => {
+          clearTimeout(showTimerId);
+          clearTimeout(hideTimerId);
+        };
+      }
+    }
+
+    lastPhaseKeyRef.current = currentPhaseKey;
+  }, [currentPhaseKey]);
+
   if (!room) {
     return (
       <div className="h-screen w-screen bg-background flex flex-col items-center justify-center font-serif-gothic demonic-bg">
@@ -156,14 +228,17 @@ export default function GameRoomPage() {
   const isHost = room.hostId === playerId;
 
   const handleStartGame = () => {
+    emitSoundEffect('start');
     socket.emit('start_game', { roomId, playerId });
   };
 
   const handleNightAction = (targetPlayerId) => {
+    emitSoundEffect(me.role === 'WEREWOLF' ? 'wolf' : me.role === 'SEER' ? 'seer' : 'guard');
     socket.emit('night_action', { roomId, playerId, targetPlayerId });
   };
 
   const handleCastVote = (targetPlayerId) => {
+    emitSoundEffect('mark');
     socket.emit('cast_vote', { roomId, playerId, targetPlayerId });
   };
 
@@ -176,6 +251,7 @@ export default function GameRoomPage() {
       playerId,
       text: chatInput.trim()
     });
+    emitSoundEffect('whisper');
     setChatInput('');
   };
 
@@ -292,17 +368,24 @@ export default function GameRoomPage() {
 
   return (
     <div className="bg-background text-on-background h-screen flex flex-col md:flex-row font-body-gothic textured-bg overflow-hidden">
+      {phaseOverlay && (
+        <div className={`phase-transition phase-transition-${phaseOverlay.tone}`}>
+          <div className="phase-transition__sigil" />
+          <div className="phase-transition__content">
+            <div className="phase-transition__eyebrow">Nghi thức chuyển pha</div>
+            <h2>{phaseOverlay.title}</h2>
+            <p>{phaseOverlay.subtitle}</p>
+          </div>
+        </div>
+      )}
       
       {/* Main Game Screen */}
       <main 
-        className="flex-grow flex flex-col relative overflow-hidden border-b-2 md:border-b-0 md:border-r-2 border-outline-variant h-[60%] md:h-full shadow-[inset_0_0_100px_rgba(0,0,0,0.95)]"
-        style={{
-          backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.85)), url('/images/sidebar_texture.png')",
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
-        }}
+        className={`game-stage ${getPhaseClass(room)} flex-grow flex flex-col relative overflow-hidden border-b-2 md:border-b-0 md:border-r-2 border-outline-variant h-[60%] md:h-full shadow-[inset_0_0_100px_rgba(0,0,0,0.95)]`}
       >
+        <div className="game-stage__mist game-stage__mist-a" aria-hidden="true" />
+        <div className="game-stage__mist game-stage__mist-b" aria-hidden="true" />
+        <div className="game-stage__phase-glow" aria-hidden="true" />
         
         {/* Phase Header Banner */}
         {renderPhaseBanner()}
@@ -315,16 +398,23 @@ export default function GameRoomPage() {
             <div className="mb-6 p-4 border border-outline-variant bg-surface-container-low flex justify-between items-center rounded">
               <div className="flex items-center gap-3">
                 <span className="text-sm text-on-surface-variant font-mono-gothic">Vai trò của ông chủ:</span>
-                <span 
-                  onClick={() => setShowRole(!showRole)}
-                  className={`font-serif-gothic text-base px-3 py-1 border border-secondary cursor-pointer select-none rounded transition-all ${
-                    showRole 
-                      ? 'bg-secondary text-white font-bold blood-glow' 
-                      : 'bg-black/40 text-primary hover:bg-black/60'
-                  }`}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!showRole) emitSoundEffect('reveal');
+                    setShowRole(!showRole);
+                  }}
+                  className={`role-reveal-card ${showRole ? 'is-revealed' : ''}`}
+                  data-role={me.role}
+                  aria-label={showRole ? 'Ẩn vai trò' : 'Xem vai trò'}
                 >
-                  {showRole ? getRoleLabel(me.role) : 'Bấm để xem'}
-                </span>
+                  <span className="role-reveal-card__face role-reveal-card__front">
+                    Bấm để xem
+                  </span>
+                  <span className="role-reveal-card__face role-reveal-card__back">
+                    {getRoleLabel(me.role)}
+                  </span>
+                </button>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-on-surface-variant font-mono-gothic">Trạng thái:</span>

@@ -298,6 +298,263 @@ textarea {
   }
 }
 
+.game-stage {
+  background-size: cover;
+  background-position: center;
+}
+
+.game-stage > * {
+  position: relative;
+  z-index: 1;
+}
+
+.game-stage-lobby {
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.58), rgba(0, 0, 0, 0.78)),
+    url('/images/sidebar_texture.png');
+}
+
+.game-stage-night {
+  background-image:
+    radial-gradient(ellipse at 50% 20%, rgba(62, 91, 128, 0.18), transparent 38%),
+    linear-gradient(rgba(0, 0, 0, 0.62), rgba(0, 0, 0, 0.88)),
+    url('/images/lobby-ritual-background.png');
+}
+
+.game-stage-day {
+  background-image:
+    radial-gradient(ellipse at 52% 15%, rgba(233, 195, 73, 0.16), transparent 36%),
+    linear-gradient(rgba(20, 10, 0, 0.48), rgba(0, 0, 0, 0.78)),
+    url('/images/lobby-ritual-background.png');
+}
+
+.game-stage-voting {
+  background-image:
+    radial-gradient(ellipse at 50% 58%, rgba(139, 0, 0, 0.28), transparent 42%),
+    linear-gradient(rgba(25, 0, 0, 0.5), rgba(0, 0, 0, 0.88)),
+    url('/images/lobby-ritual-background.png');
+}
+
+.game-stage-finished {
+  background-image:
+    radial-gradient(ellipse at 50% 50%, rgba(255, 180, 168, 0.18), transparent 42%),
+    linear-gradient(rgba(0, 0, 0, 0.56), rgba(0, 0, 0, 0.86)),
+    url('/images/lobby-ritual-background.png');
+}
+
+.game-stage__mist,
+.game-stage__phase-glow {
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
+}
+
+.game-stage__mist {
+  left: -20%;
+  right: -20%;
+  height: 38%;
+  background:
+    radial-gradient(ellipse at 30% 60%, rgba(225, 230, 230, 0.12), transparent 44%),
+    radial-gradient(ellipse at 70% 50%, rgba(220, 210, 194, 0.09), transparent 38%);
+  filter: blur(24px);
+  mix-blend-mode: screen;
+  opacity: 0.42;
+  animation: game-mist-drift 24s ease-in-out infinite alternate;
+}
+
+.game-stage__mist-a {
+  bottom: 8%;
+}
+
+.game-stage__mist-b {
+  top: 22%;
+  opacity: 0.24;
+  animation-direction: alternate-reverse;
+}
+
+.game-stage__phase-glow {
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 0%, transparent 44%, rgba(0, 0, 0, 0.58) 100%);
+}
+
+.phase-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at center, rgba(255, 180, 168, 0.12), transparent 30%),
+    rgba(0, 0, 0, 0.68);
+  animation: phase-fade 2.2s ease forwards;
+}
+
+.phase-transition__content {
+  position: relative;
+  z-index: 2;
+  width: min(520px, calc(100vw - 48px));
+  border-top: 1px solid rgba(255, 180, 168, 0.4);
+  border-bottom: 1px solid rgba(255, 180, 168, 0.24);
+  padding: 28px 18px;
+  text-align: center;
+  background: linear-gradient(90deg, transparent, rgba(10, 0, 0, 0.68), transparent);
+  box-shadow: 0 0 70px rgba(0, 0, 0, 0.78);
+}
+
+.phase-transition__eyebrow {
+  color: #e9c349;
+  font-size: 11px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.phase-transition h2 {
+  color: #ffb4a8;
+  font-size: clamp(28px, 4vw, 48px);
+  font-weight: 800;
+  text-shadow: 0 0 24px rgba(139, 0, 0, 0.9);
+}
+
+.phase-transition p {
+  color: rgba(229, 226, 225, 0.8);
+  font-size: 14px;
+  margin-top: 10px;
+  line-height: 1.65;
+}
+
+.phase-transition__sigil {
+  position: absolute;
+  width: min(68vw, 620px);
+  aspect-ratio: 1;
+  border: 1px solid rgba(255, 180, 168, 0.2);
+  border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, rgba(255, 180, 168, 0.14) 0deg 2deg, transparent 2deg 14deg);
+  -webkit-mask: radial-gradient(circle, transparent 0 56%, #000 57% 58%, transparent 59% 64%, #000 65% 66%, transparent 67%);
+  mask: radial-gradient(circle, transparent 0 56%, #000 57% 58%, transparent 59% 64%, #000 65% 66%, transparent 67%);
+  animation: phase-sigil-turn 2.2s ease-out forwards;
+}
+
+.phase-transition-night {
+  background:
+    radial-gradient(ellipse at center, rgba(74, 111, 164, 0.16), transparent 34%),
+    rgba(0, 0, 0, 0.74);
+}
+
+.phase-transition-day {
+  background:
+    radial-gradient(ellipse at center, rgba(233, 195, 73, 0.16), transparent 34%),
+    rgba(0, 0, 0, 0.58);
+}
+
+.phase-transition-vote,
+.phase-transition-mark {
+  background:
+    radial-gradient(ellipse at center, rgba(139, 0, 0, 0.28), transparent 36%),
+    rgba(0, 0, 0, 0.7);
+}
+
+.role-reveal-card {
+  position: relative;
+  width: 132px;
+  height: 34px;
+  border: 1px solid rgba(139, 0, 0, 0.85);
+  border-radius: 4px;
+  background: transparent;
+  color: #ffb4a8;
+  cursor: pointer;
+  perspective: 600px;
+}
+
+.role-reveal-card__face {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  backface-visibility: hidden;
+  transition: transform 0.55s ease, box-shadow 0.55s ease;
+  border-radius: 3px;
+}
+
+.role-reveal-card__front {
+  background:
+    linear-gradient(135deg, rgba(20, 0, 0, 0.94), rgba(70, 0, 0, 0.62)),
+    radial-gradient(circle at center, rgba(255, 180, 168, 0.12), transparent 60%);
+}
+
+.role-reveal-card__back {
+  transform: rotateY(180deg);
+  background: linear-gradient(135deg, rgba(139, 0, 0, 0.92), rgba(20, 0, 0, 0.88));
+  color: #fff;
+  font-weight: 800;
+  box-shadow: 0 0 18px rgba(139, 0, 0, 0.56);
+}
+
+.role-reveal-card.is-revealed .role-reveal-card__front {
+  transform: rotateY(180deg);
+}
+
+.role-reveal-card.is-revealed .role-reveal-card__back {
+  transform: rotateY(360deg);
+}
+
+.role-reveal-card[data-role="WEREWOLF"] .role-reveal-card__back {
+  background: linear-gradient(135deg, rgba(116, 0, 0, 0.96), rgba(20, 0, 0, 0.92));
+}
+
+.role-reveal-card[data-role="SEER"] .role-reveal-card__back {
+  background: linear-gradient(135deg, rgba(48, 36, 116, 0.96), rgba(12, 8, 30, 0.92));
+}
+
+.role-reveal-card[data-role="BODYGUARD"] .role-reveal-card__back {
+  background: linear-gradient(135deg, rgba(26, 75, 98, 0.96), rgba(6, 18, 24, 0.92));
+}
+
+@keyframes game-mist-drift {
+  from {
+    transform: translateX(-4%) translateY(0);
+  }
+  to {
+    transform: translateX(5%) translateY(-10px);
+  }
+}
+
+@keyframes phase-fade {
+  0% {
+    opacity: 0;
+  }
+  15%, 72% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes phase-sigil-turn {
+  from {
+    opacity: 0;
+    transform: scale(0.78) rotate(-18deg);
+  }
+  35% {
+    opacity: 0.62;
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.12) rotate(42deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-stage__mist,
+  .phase-transition,
+  .phase-transition__sigil,
+  .role-reveal-card__face {
+    animation: none;
+    transition: none;
+  }
+}
+
 .border-gothic {
   border: 2px solid #8b0000;
   position: relative;
