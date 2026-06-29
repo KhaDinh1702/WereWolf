@@ -6,34 +6,41 @@ import { io } from 'socket.io-client';
 const SocketContext = createContext(null);
 
 const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:5000';
-
-export const SocketProvider = ({ children }) => {
-  const [socket, setSocket] = useState(null);
-  const [isConnected, setIsConnected] = useState(false);
-
-  useEffect(() => {
-    const socketInstance = io(SOCKET_URL, {
-      autoConnect: true,
+const socketInstance = typeof window === 'undefined'
+  ? null
+  : io(SOCKET_URL, {
+      autoConnect: false,
       reconnectionAttempts: 5,
       reconnectionDelay: 2000
     });
 
-    socketInstance.on('connect', () => {
+export const SocketProvider = ({ children }) => {
+  const socket = socketInstance;
+  const [isConnected, setIsConnected] = useState(false);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleConnect = () => {
       console.log('Connected to socket server');
       setIsConnected(true);
-    });
+    };
 
-    socketInstance.on('disconnect', () => {
+    const handleDisconnect = () => {
       console.log('Disconnected from socket server');
       setIsConnected(false);
-    });
+    };
 
-    setSocket(socketInstance);
+    socket.on('connect', handleConnect);
+    socket.on('disconnect', handleDisconnect);
+    socket.connect();
 
     return () => {
-      socketInstance.disconnect();
+      socket.off('connect', handleConnect);
+      socket.off('disconnect', handleDisconnect);
+      socket.disconnect();
     };
-  }, []);
+  }, [socket]);
 
   return (
     <SocketContext.Provider value={{ socket, isConnected }}>

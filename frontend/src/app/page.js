@@ -1,35 +1,37 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useSocket } from '@/context/SocketContext';
 import AboutModal from './components/AboutModal';
 
+const getInitialPlayerId = () => {
+  if (typeof window === 'undefined') return '';
+
+  let id = sessionStorage.getItem('werewolf_player_id');
+  if (!id) {
+    id = 'usr_' + Math.random().toString(36).substring(2, 11);
+    sessionStorage.setItem('werewolf_player_id', id);
+  }
+  return id;
+};
+
+const getInitialUsername = () => {
+  if (typeof window === 'undefined') return '';
+  return localStorage.getItem('werewolf_username') || '';
+};
+
 export default function LobbyPage() {
   const router = useRouter();
   const { socket, isConnected } = useSocket();
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState(getInitialUsername);
   const [roomId, setRoomId] = useState('');
-  const [playerId, setPlayerId] = useState('');
+  const [playerId] = useState(getInitialPlayerId);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [showRoomInput, setShowRoomInput] = useState(false);
-
-  // Initialize playerId from sessionStorage or generate one
-  useEffect(() => {
-    let id = sessionStorage.getItem('werewolf_player_id');
-    if (!id) {
-      id = 'usr_' + Math.random().toString(36).substring(2, 11);
-      sessionStorage.setItem('werewolf_player_id', id);
-    }
-    setPlayerId(id);
-
-    const savedName = localStorage.getItem('werewolf_username');
-    if (savedName) {
-      setUsername(savedName);
-    }
-  }, []);
 
   const validateUsername = () => {
     if (!username.trim()) {
@@ -97,9 +99,16 @@ export default function LobbyPage() {
     <div className="bg-background text-on-background h-screen flex flex-col md:flex-row font-body-gothic textured-bg overflow-hidden">
 
       {/* Main Canvas (Left Area) */}
-      <main className="flex-grow flex flex-col relative overflow-hidden border-b-4 md:border-b-0 md:border-r-4 border-secondary demonic-bg justify-center p-8 z-10 h-1/2 md:h-full">
+      <main className="ritual-stage flex-grow flex flex-col relative overflow-hidden border-b-4 md:border-b-0 md:border-r-4 border-secondary demonic-bg justify-center p-8 z-10 h-1/2 md:h-full">
+        <div className="ritual-vignette" aria-hidden="true" />
+        <div className="ritual-moonlight" aria-hidden="true" />
+        <div className="ritual-sigil" aria-hidden="true" />
+        <div className="ritual-fog ritual-fog-a" aria-hidden="true" />
+        <div className="ritual-fog ritual-fog-b" aria-hidden="true" />
+        <div className="ritual-candle ritual-candle-left" aria-hidden="true" />
+        <div className="ritual-candle ritual-candle-right" aria-hidden="true" />
         <div
-          className="w-full max-w-[440px] aspect-[10/13] flex flex-col items-center justify-center relative overflow-hidden shadow-[5px_10px_35px_rgba(0,0,0,0.95)] border border-amber-950/20 rounded-[4px] mx-auto"
+          className="ritual-book w-full max-w-[440px] aspect-[10/13] flex flex-col items-center justify-center relative overflow-hidden shadow-[5px_10px_35px_rgba(0,0,0,0.95)] border border-amber-950/20 rounded-[4px] mx-auto"
           style={{
             backgroundImage: "url('/images/book-cover.jpg')",
             backgroundSize: '100% 100%',
@@ -107,11 +116,13 @@ export default function LobbyPage() {
             backgroundRepeat: 'no-repeat'
           }}
         >
-          {/* Werewolf Art Portrait (Main featured element) */}
-          <div className="relative w-[60%] h-[68%] border-4 border-amber-900/60 rounded-[50%] overflow-hidden shadow-[inset_0_4px_15px_rgba(0,0,0,0.9),0_0_20px_rgba(0,0,0,0.8)] my-auto -mt-2">
-            <img
-              src="/images/werewolf-art.jpg"
-              alt="Werewolf Gothic Ritual Art"
+          {/* Main featured portrait */}
+          <div className="absolute left-1/2 top-1/2 w-[60%] h-[68%] -translate-x-1/2 -translate-y-1/2 border-4 border-amber-900/60 rounded-[50%] overflow-hidden shadow-[inset_0_4px_15px_rgba(0,0,0,0.9),0_0_20px_rgba(0,0,0,0.8)]">
+            <Image
+              src="/images/werewolf-villager-portrait.png"
+              alt="Ma sói và người dân làng trong đêm"
+              fill
+              sizes="(max-width: 768px) 60vw, 264px"
               className="w-full h-full object-cover"
             />
           </div>
@@ -119,7 +130,7 @@ export default function LobbyPage() {
           {!isConnected && (
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-3 py-1.5 border border-red-500/50 bg-red-950/90 text-red-400 text-[10px] font-mono-gothic flex items-center gap-1.5 animate-pulse rounded shadow-lg">
               <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-              MẤT KẾT NỐI SERVER
+              MẤT KẾT NỐI MÁY CHỦ
             </div>
           )}
         </div>
@@ -139,7 +150,7 @@ export default function LobbyPage() {
 
           {/* Player Identity Input */}
           <div className="space-y-3">
-            <h2 className="font-serif-gothic text-base text-zinc-200 uppercase tracking-wider border-b border-zinc-700/50 pb-2">
+            <h2 className="font-serif-gothic text-base text-zinc-200 border-b border-zinc-700/50 pb-2">
               Danh tính của bạn
             </h2>
             <input
@@ -148,7 +159,7 @@ export default function LobbyPage() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               disabled={isSubmitting}
-              className="w-full font-serif-gothic text-base p-3 border border-zinc-700/40 focus:border-zinc-400/60 focus:ring-0 text-center uppercase tracking-widest bg-black/50 text-zinc-100 transition-all placeholder-zinc-600 rounded-sm"
+              className="w-full font-serif-gothic text-base p-3 border border-zinc-700/40 focus:border-zinc-400/60 focus:ring-0 text-center bg-black/50 text-zinc-100 transition-all placeholder-zinc-600 rounded-sm"
             />
           </div>
 
@@ -157,7 +168,7 @@ export default function LobbyPage() {
             <button
               onClick={handleCreateRoom}
               disabled={isSubmitting}
-              className="group w-full bg-transparent text-zinc-400 hover:text-[#e9c349] font-serif-gothic text-lg py-2.5 tracking-widest uppercase transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+              className="group w-full bg-transparent text-zinc-400 hover:text-[#e9c349] font-serif-gothic text-lg py-2.5 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
             >
               Tạo Phòng Chơi
               <span className="opacity-0 group-hover:opacity-100 transition-all duration-300 text-primary text-xs -translate-x-2 group-hover:translate-x-0">
@@ -172,7 +183,7 @@ export default function LobbyPage() {
               type="button"
               onClick={() => setShowRoomInput((prev) => !prev)}
               disabled={isSubmitting}
-              className="group w-full bg-transparent text-zinc-400 hover:text-[#e9c349] font-serif-gothic text-lg py-2.5 tracking-widest uppercase transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+              className="group w-full bg-transparent text-zinc-400 hover:text-[#e9c349] font-serif-gothic text-lg py-2.5 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
             >
               Vào Phòng
               <span className="opacity-0 group-hover:opacity-100 transition-all duration-300 text-primary text-xs -translate-x-2 group-hover:translate-x-0">
@@ -192,8 +203,8 @@ export default function LobbyPage() {
               <form onSubmit={handleJoinRoom} className="space-y-2 pt-1">
                 <input
                   autoFocus={showRoomInput}
-                  className="w-full font-serif-gothic text-base p-3 border border-zinc-700/40 focus:border-zinc-400/60 focus:ring-0 text-center uppercase tracking-widest bg-black/50 text-zinc-100 transition-all placeholder-zinc-600 rounded-sm"
-                  placeholder="NHẬP ID PHÒNG"
+                  className="w-full font-serif-gothic text-base p-3 border border-zinc-700/40 focus:border-zinc-400/60 focus:ring-0 text-center bg-black/50 text-zinc-100 transition-all placeholder-zinc-600 rounded-sm"
+                  placeholder="NHẬP MÃ PHÒNG"
                   type="text"
                   value={roomId}
                   onChange={(e) => setRoomId(e.target.value)}
@@ -202,9 +213,9 @@ export default function LobbyPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full font-serif-gothic text-xs py-2 tracking-widest uppercase text-zinc-500 hover:text-zinc-200 transition-colors cursor-pointer border border-zinc-800 hover:border-zinc-600 rounded-sm"
+                  className="w-full font-serif-gothic text-xs py-2 text-zinc-500 hover:text-zinc-200 transition-colors cursor-pointer border border-zinc-800 hover:border-zinc-600 rounded-sm"
                 >
-                  XÁC NHẬN
+                  Xác nhận
                 </button>
               </form>
             </div>
@@ -222,9 +233,9 @@ export default function LobbyPage() {
         <div className="mt-auto pt-4 px-6 border-t border-outline-variant/20 mx-4">
           <button
             onClick={() => setIsAboutOpen(true)}
-            className="group w-full flex items-center justify-center gap-2 text-zinc-500 hover:text-[#e9c349] py-2 transition-colors cursor-pointer text-xs font-serif-gothic tracking-widest uppercase"
+            className="group w-full flex items-center justify-center gap-2 text-zinc-500 hover:text-[#e9c349] py-2 transition-colors cursor-pointer text-xs font-serif-gothic"
           >
-            ABOUT GAME
+            GIỚI THIỆU TRÒ CHƠI
             <span className="opacity-0 group-hover:opacity-100 transition-all duration-300 text-primary text-[10px] -translate-x-1.5 group-hover:translate-x-0">
               ▶
             </span>

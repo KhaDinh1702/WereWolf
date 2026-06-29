@@ -4,18 +4,18 @@ Chào mừng ông chủ đến với tài liệu hướng dẫn các vai trò (R
 
 ---
 
-## 🐺 1. MA SÓI (WEREWOLF)
+## 🐺 1. MA SÓI
 * **Biểu tượng:** 🐺
 * **Phe chiến thắng:** Phe Ma Sói (Tiêu diệt dân làng cho tới khi số lượng Sói bằng hoặc lớn hơn số lượng người dân còn sống).
 * **Mô tả:** Là thế lực tà ác ẩn mình trong bóng đêm. Vào ban ngày, Sói phải ngụy trang như một người dân bình thường để tránh bị treo cổ.
 * **Cơ chế hoạt động:**
   - **Ban đêm (NIGHT):** Sói sẽ thức giấc cùng đồng bọn (nếu phòng đông người) và cùng thống nhất chọn ra 1 nạn nhân để cắn sát hại. 
-  - **Quyền năng:** Sói có thể thảo luận riêng tư với nhau trong kênh chat nội bộ ban đêm (Wolf Chat) để lên chiến thuật.
+  - **Quyền năng:** Sói có thể thảo luận riêng tư với nhau trong kênh trò chuyện nội bộ ban đêm để lên chiến thuật.
   - Nếu có nhiều Sói chọn các mục tiêu khác nhau, hệ thống sẽ tính theo số đông (majority vote). Nếu số phiếu cắn bằng nhau, một mục tiêu ngẫu nhiên trong nhóm bị cắn sẽ chết.
 
 ---
 
-## 🔮 2. TIÊN TRI (SEER)
+## 🔮 2. TIÊN TRI
 * **Biểu tượng:** 🔮
 * **Phe chiến thắng:** Phe Dân Làng (Tiêu diệt toàn bộ Ma Sói).
 * **Mô tả:** Người sở hữu nhãn quan tâm linh vượt trội, có khả năng soi thấu linh hồn ẩn giấu bên trong mỗi người chơi.
@@ -26,7 +26,7 @@ Chào mừng ông chủ đến với tài liệu hướng dẫn các vai trò (R
 
 ---
 
-## 🛡️ 3. BẢO VỆ (BODYGUARD)
+## 🛡️ 3. BẢO VỆ
 * **Biểu tượng:** 🛡️
 * **Phe chiến thắng:** Phe Dân Làng (Tiêu diệt toàn bộ Ma Sói).
 * **Mô tả:** Kẻ canh phòng thầm lặng trong đêm tối, sẵn sàng xả thân để bảo vệ một mục tiêu khỏi móng vuốt của Ma Sói.
@@ -37,7 +37,7 @@ Chào mừng ông chủ đến với tài liệu hướng dẫn các vai trò (R
 
 ---
 
-## 👨 4. DÂN LÀNG (VILLAGER)
+## 👨 4. DÂN LÀNG
 * **Biểu tượng:** 👨
 * **Phe chiến thắng:** Phe Dân Làng (Tiêu diệt toàn bộ Ma Sói).
 * **Mô tả:** Những người dân lương thiện nhưng không có năng lực đặc biệt ban đêm. Sức mạnh lớn nhất của Dân Làng là sự đoàn kết và suy luận logic vào ban ngày.

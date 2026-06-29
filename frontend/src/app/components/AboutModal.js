@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 
 const ROLES_INFO = [
   {
     id: 'WEREWOLF',
     numeral: 'I',
     title: 'MA SÓI',
-    subtitle: 'Werewolf',
+    subtitle: 'Kẻ săn đêm',
     faction: 'Phe Hắc Ám',
     tagline: 'Hung thần bóng đêm, kẻ thao túng sự nghi ngờ.',
     description:
@@ -27,7 +28,7 @@ const ROLES_INFO = [
     id: 'SEER',
     numeral: 'II',
     title: 'TIÊN TRI',
-    subtitle: 'Seer',
+    subtitle: 'Người soi mệnh',
     faction: 'Phe Dân Làng',
     tagline: 'Nhãn quan tâm linh soi tỏ mọi gian dối.',
     description:
@@ -46,7 +47,7 @@ const ROLES_INFO = [
     id: 'BODYGUARD',
     numeral: 'III',
     title: 'BẢO VỆ',
-    subtitle: 'Bodyguard',
+    subtitle: 'Người canh giữ',
     faction: 'Phe Dân Làng',
     tagline: 'Lá chắn thầm lặng trước nanh vuốt sói dữ.',
     description:
@@ -65,7 +66,7 @@ const ROLES_INFO = [
     id: 'VILLAGER',
     numeral: 'IV',
     title: 'DÂN LÀNG',
-    subtitle: 'Villager',
+    subtitle: 'Người dân',
     faction: 'Phe Dân Làng',
     tagline: 'Số đông đoàn kết, vũ khí của suy luận.',
     description:
@@ -155,7 +156,7 @@ export default function AboutModal({ isOpen, onClose }) {
                 Nghi Thức Vai Trò
               </h2>
               <p className="text-[9px] text-zinc-600 tracking-widest font-mono-gothic uppercase mt-0.5">
-                Grimoire of the Moonlit Village
+                Sổ tay của ngôi làng dưới trăng
               </p>
             </div>
           </div>
@@ -220,10 +221,12 @@ export default function AboutModal({ isOpen, onClose }) {
               style={{ borderRight: '1px solid #1a1010' }}
             >
               {/* Character portrait image */}
-              <img
+              <Image
                 key={role.id}
                 src={role.portrait}
                 alt={role.title}
+                fill
+                sizes="320px"
                 className="absolute inset-0 w-full h-full"
                 style={{ objectFit: 'cover', objectPosition: 'center top' }}
               />

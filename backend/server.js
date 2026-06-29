@@ -14,7 +14,7 @@ app.use(express.json());
 
 // Basic health check route
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Werewolf Server is running' });
+  res.json({ status: 'ok', message: 'Máy chủ Ma Sói đang hoạt động' });
 });
 
 const httpServer = createServer(app);
@@ -24,6 +24,16 @@ const io = new Server(httpServer, {
     methods: ['GET', 'POST']
   }
 });
+
+const ROLE_LABELS = {
+  WEREWOLF: 'Ma Sói',
+  SEER: 'Tiên Tri',
+  BODYGUARD: 'Bảo Vệ',
+  VILLAGER: 'Dân Làng',
+  NONE: 'Chưa rõ'
+};
+
+const getRoleLabel = (role) => ROLE_LABELS[role] || 'Chưa rõ';
 
 // Connect to MongoDB
 connectDB();
@@ -325,19 +335,22 @@ io.on('connection', (socket) => {
 
       const player = room.players.find(p => p.playerId === playerId);
       if (!player || !player.isAlive || player.role === 'VILLAGER') return;
+      if (player.roleActionDone) return;
+
+      const target = room.players.find(p => p.playerId === targetPlayerId);
+      if (!target || !target.isAlive) return;
+      if ((player.role === 'WEREWOLF' || player.role === 'SEER') && target.playerId === playerId) return;
+      if (player.role === 'WEREWOLF' && target.role === 'WEREWOLF') return;
 
       player.actionTarget = targetPlayerId;
       player.roleActionDone = true;
 
       // Handle Seer custom feedback right away
       if (player.role === 'SEER') {
-        const target = room.players.find(p => p.playerId === targetPlayerId);
-        if (target) {
-          socket.emit('seer_result', {
-            targetId: targetPlayerId,
-            role: target.role === 'WEREWOLF' ? 'WEREWOLF' : 'VILLAGER'
-          });
-        }
+        socket.emit('seer_result', {
+          targetId: targetPlayerId,
+          role: target.role === 'WEREWOLF' ? 'WEREWOLF' : 'VILLAGER'
+        });
       }
 
       await room.save();
@@ -442,6 +455,10 @@ io.on('connection', (socket) => {
 
       const player = room.players.find(p => p.playerId === playerId);
       if (!player || !player.isAlive) return;
+      if (player.hasVoted) return;
+
+      const target = room.players.find(p => p.playerId === targetPlayerId);
+      if (!target || !target.isAlive || target.playerId === playerId) return;
 
       player.voteTarget = targetPlayerId;
       player.hasVoted = true;
@@ -474,7 +491,7 @@ io.on('connection', (socket) => {
       let logMessage = '';
       if (votedOutPlayerId) {
         const victim = room.players.find(p => p.playerId === votedOutPlayerId);
-        logMessage = `Dân làng đã treo cổ ${victim.username} (vai trò: ${victim.role}).`;
+        logMessage = `Dân làng đã treo cổ ${victim.username} (vai trò: ${getRoleLabel(victim.role)}).`;
       } else {
         logMessage = 'Không có ai bị treo cổ trong ngày hôm nay do số phiếu bằng nhau hoặc không ai vote.';
       }

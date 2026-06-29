@@ -5,6 +5,26 @@ import { useParams, useRouter } from 'next/navigation';
 import { useSocket } from '@/context/SocketContext';
 import AboutModal from '@/app/components/AboutModal';
 
+const getStoredPlayerId = () => {
+  if (typeof window === 'undefined') return '';
+  return sessionStorage.getItem('werewolf_player_id') || '';
+};
+
+const getStoredUsername = () => {
+  if (typeof window === 'undefined') return '';
+  return localStorage.getItem('werewolf_username') || '';
+};
+
+const ROLE_LABELS = {
+  WEREWOLF: 'Ma Sói',
+  SEER: 'Tiên Tri',
+  BODYGUARD: 'Bảo Vệ',
+  VILLAGER: 'Dân Làng',
+  NONE: 'Chưa rõ'
+};
+
+const getRoleLabel = (role) => ROLE_LABELS[role] || 'Chưa rõ';
+
 export default function GameRoomPage() {
   const params = useParams();
   const router = useRouter();
@@ -12,8 +32,8 @@ export default function GameRoomPage() {
   
   const { socket, isConnected } = useSocket();
   const [room, setRoom] = useState(null);
-  const [playerId, setPlayerId] = useState('');
-  const [username, setUsername] = useState('');
+  const [playerId] = useState(getStoredPlayerId);
+  const [username] = useState(getStoredUsername);
   const [messages, setMessages] = useState([]);
   const [chatInput, setChatInput] = useState('');
   const [timeLeft, setTimeLeft] = useState(0);
@@ -24,22 +44,22 @@ export default function GameRoomPage() {
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   
   const chatEndRef = useRef(null);
+  const roomRef = useRef(null);
 
-  // Initialize identity
   useEffect(() => {
-    const storedId = sessionStorage.getItem('werewolf_player_id');
-    const storedName = localStorage.getItem('werewolf_username');
-    if (!storedId || !storedName) {
+    roomRef.current = room;
+  }, [room]);
+
+  // Redirect visitors that do not have a saved identity from the lobby.
+  useEffect(() => {
+    if (!playerId || !username) {
       router.push('/');
-      return;
     }
-    setPlayerId(storedId);
-    setUsername(storedName);
-  }, [router]);
+  }, [playerId, username, router]);
 
   // Connect to socket and setup event listeners
   useEffect(() => {
-    if (!socket || !isConnected || !roomId || !playerId) return;
+    if (!socket || !isConnected || !roomId || !playerId || !username) return;
 
     // Check reconnection/restore state
     socket.emit('reconnect_check', { roomId, playerId }, (response) => {
@@ -59,44 +79,52 @@ export default function GameRoomPage() {
     });
 
     // Register event listeners
-    socket.on('room_updated', (updatedRoom) => {
+    const handleRoomUpdated = (updatedRoom) => {
       setRoom(updatedRoom);
-    });
+    };
 
-    socket.on('timer_tick', ({ timeLeft }) => {
+    const handleTimerTick = ({ timeLeft }) => {
       setTimeLeft(timeLeft);
-    });
+    };
 
-    socket.on('receive_message', (msg) => {
+    const handleReceiveMessage = (msg) => {
       setMessages((prev) => [...prev, msg]);
-    });
+    };
 
-    socket.on('seer_result', ({ targetId, role }) => {
-      if (!room) return;
-      const targetPlayer = room.players.find(p => p.playerId === targetId);
+    const handleSeerResult = ({ targetId, role }) => {
+      const currentRoom = roomRef.current;
+      if (!currentRoom) return;
+      const targetPlayer = currentRoom.players.find(p => p.playerId === targetId);
       const targetName = targetPlayer ? targetPlayer.username : 'Ẩn danh';
       setSeerReveal({ targetName, role });
-    });
+    };
 
-    socket.on('error_message', (errMsg) => {
+    const handleErrorMessage = (errMsg) => {
       setError(errMsg);
       setTimeout(() => setError(''), 5000);
-    });
+    };
 
-    socket.on('game_started', () => {
+    const handleGameStarted = () => {
       setMessages([]); // Clear chat logs when game starts
       setSeerReveal(null);
-    });
+    };
+
+    socket.on('room_updated', handleRoomUpdated);
+    socket.on('timer_tick', handleTimerTick);
+    socket.on('receive_message', handleReceiveMessage);
+    socket.on('seer_result', handleSeerResult);
+    socket.on('error_message', handleErrorMessage);
+    socket.on('game_started', handleGameStarted);
 
     return () => {
-      socket.off('room_updated');
-      socket.off('timer_tick');
-      socket.off('receive_message');
-      socket.off('seer_result');
-      socket.off('error_message');
-      socket.off('game_started');
+      socket.off('room_updated', handleRoomUpdated);
+      socket.off('timer_tick', handleTimerTick);
+      socket.off('receive_message', handleReceiveMessage);
+      socket.off('seer_result', handleSeerResult);
+      socket.off('error_message', handleErrorMessage);
+      socket.off('game_started', handleGameStarted);
     };
-  }, [socket, isConnected, roomId, playerId, username, router, room]);
+  }, [socket, isConnected, roomId, playerId, username, router]);
 
   // Scroll to bottom of chat
   useEffect(() => {
@@ -170,17 +198,17 @@ export default function GameRoomPage() {
       return (
         <div className="bg-black/40 backdrop-blur-sm border-b border-outline-variant/30 px-6 py-4 flex flex-row justify-between items-center shrink-0">
           <div>
-            <h1 className="font-serif-gothic text-xl text-primary uppercase tracking-widest font-semibold blood-glow">Sảnh chờ nghi lễ</h1>
-            <p className="text-xs text-on-surface-variant/80 font-mono-gothic mt-0.5">ID PHÒNG: <span className="text-primary font-bold tracking-widest">{room.roomId}</span></p>
+            <h1 className="font-serif-gothic text-xl text-primary font-bold blood-glow">Sảnh chờ nghi lễ</h1>
+            <p className="text-xs text-on-surface-variant/80 font-mono-gothic mt-0.5">Mã phòng: <span className="text-primary font-bold">{room.roomId}</span></p>
           </div>
           <div className="text-right flex items-center gap-4">
             <button 
               onClick={() => setIsAboutOpen(true)}
-              className="text-xs font-serif-gothic text-[#e9c349] hover:text-white uppercase tracking-widest cursor-pointer border border-outline-variant/30 hover:border-[#e9c349]/50 px-3 py-1 rounded transition-all bg-black/40"
+              className="text-xs font-serif-gothic text-[#e9c349] hover:text-white cursor-pointer border border-outline-variant/30 hover:border-[#e9c349]/50 px-3 py-1 rounded transition-all bg-black/40"
             >
               LUẬT CHƠI
             </button>
-            <span className="text-xs font-serif-gothic text-primary/70 uppercase tracking-widest">Chờ đồng bọn ({room.players.length})</span>
+            <span className="text-xs font-serif-gothic text-primary/70">Chờ đồng bọn ({room.players.length})</span>
           </div>
         </div>
       );
@@ -190,18 +218,18 @@ export default function GameRoomPage() {
       return (
         <div className="bg-secondary border-b-2 border-primary px-6 py-4 flex flex-row justify-between items-center shrink-0 blood-glow-box">
           <div>
-            <h1 className="font-serif-gothic text-lg text-white uppercase tracking-widest font-bold">NGHI LỄ KẾT THÚC</h1>
+            <h1 className="font-serif-gothic text-lg text-white font-bold">Nghi lễ kết thúc</h1>
             <p className="text-xs text-primary/80 font-mono-gothic">Phòng: {room.roomId}</p>
           </div>
           <div className="text-right flex items-center gap-4">
             <button 
               onClick={() => setIsAboutOpen(true)}
-              className="text-xs font-serif-gothic text-[#e9c349] hover:text-white uppercase tracking-widest cursor-pointer border border-outline-variant/30 hover:border-[#e9c349]/50 px-3 py-1 rounded transition-all bg-black/40"
+              className="text-xs font-serif-gothic text-[#e9c349] hover:text-white cursor-pointer border border-outline-variant/30 hover:border-[#e9c349]/50 px-3 py-1 rounded transition-all bg-black/40"
             >
               LUẬT CHƠI
             </button>
-            <span className="text-lg font-serif-gothic text-primary uppercase font-bold blood-glow">
-              PHE {room.winner === 'WEREWOLF' ? 'MA SÓI' : 'DÂN LÀNG'} CHIẾN THẮNG!
+            <span className="text-lg font-serif-gothic text-primary font-bold blood-glow">
+              Phe {room.winner === 'WEREWOLF' ? 'Ma Sói' : 'Dân Làng'} chiến thắng!
             </span>
           </div>
         </div>
@@ -223,7 +251,7 @@ export default function GameRoomPage() {
       bannerTitle = 'BAN NGÀY - THẢO LUẬN';
       bannerBg = 'bg-yellow-950/20 border-yellow-900/30 text-yellow-200';
       phaseIcon = '☀️';
-      bannerDesc = 'Thảo luận công khai tìm kiếm kẻ nghi vấn. Chat tự do.';
+      bannerDesc = 'Thảo luận công khai tìm kiếm kẻ nghi vấn. Trò chuyện tự do.';
     } else if (room.currentPhase === 'VOTING') {
       bannerTitle = 'BIỂU QUYẾT TREO CỔ';
       bannerBg = 'bg-red-950/20 border-red-900/30 text-red-200';
@@ -236,7 +264,7 @@ export default function GameRoomPage() {
         <div className="flex items-center gap-3">
           <span className="text-2xl">{phaseIcon}</span>
           <div>
-            <h1 className="font-serif-gothic text-lg uppercase tracking-widest font-semibold flex items-center gap-2">
+            <h1 className="font-serif-gothic text-lg font-semibold flex items-center gap-2">
               {bannerTitle}
               <span className="text-xs font-mono-gothic font-normal text-on-surface-variant/80">(Vòng {room.currentTurn})</span>
             </h1>
@@ -247,12 +275,12 @@ export default function GameRoomPage() {
         <div className="flex items-center gap-4 self-end md:self-auto">
           <button 
             onClick={() => setIsAboutOpen(true)}
-            className="text-xs font-serif-gothic text-[#e9c349] hover:text-white uppercase tracking-widest cursor-pointer border border-outline-variant/30 hover:border-[#e9c349]/50 px-3 py-1 rounded transition-all bg-black/40"
+            className="text-xs font-serif-gothic text-[#e9c349] hover:text-white cursor-pointer border border-outline-variant/30 hover:border-[#e9c349]/50 px-3 py-1 rounded transition-all bg-black/40"
           >
             LUẬT CHƠI
           </button>
           <div className="text-right">
-            <span className="block text-xs font-mono-gothic uppercase tracking-wider text-on-surface-variant">Thời gian còn lại</span>
+            <span className="block text-xs font-mono-gothic text-on-surface-variant">Thời gian còn lại</span>
             <span className={`font-mono-gothic text-2xl font-bold ${timeLeft <= 10 ? 'text-red-500 animate-pulse' : 'text-primary'}`}>
               {timeLeft}s
             </span>
@@ -286,22 +314,22 @@ export default function GameRoomPage() {
           {room.status !== 'LOBBY' && (
             <div className="mb-6 p-4 border border-outline-variant bg-surface-container-low flex justify-between items-center rounded">
               <div className="flex items-center gap-3">
-                <span className="text-sm text-on-surface-variant font-mono-gothic">VAI TRÒ CỦA ÔNG CHỦ:</span>
+                <span className="text-sm text-on-surface-variant font-mono-gothic">Vai trò của ông chủ:</span>
                 <span 
                   onClick={() => setShowRole(!showRole)}
-                  className={`font-serif-gothic text-base px-3 py-1 border border-secondary cursor-pointer select-none tracking-widest rounded transition-all ${
+                  className={`font-serif-gothic text-base px-3 py-1 border border-secondary cursor-pointer select-none rounded transition-all ${
                     showRole 
                       ? 'bg-secondary text-white font-bold blood-glow' 
                       : 'bg-black/40 text-primary hover:bg-black/60'
                   }`}
                 >
-                  {showRole ? me.role : 'BẤM ĐỂ XEM'}
+                  {showRole ? getRoleLabel(me.role) : 'Bấm để xem'}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-on-surface-variant font-mono-gothic">Trạng thái:</span>
-                <span className={`text-sm font-bold font-serif-gothic tracking-widest ${me.isAlive ? 'text-green-400' : 'text-red-500 blood-glow'}`}>
-                  {me.isAlive ? 'CÒN SỐNG' : 'ĐÃ CHẾT (HỒN MA)'}
+                <span className={`text-sm font-bold font-serif-gothic ${me.isAlive ? 'text-green-400' : 'text-red-500 blood-glow'}`}>
+                  {me.isAlive ? 'Còn sống' : 'Đã chết (hồn ma)'}
                 </span>
               </div>
             </div>
@@ -332,7 +360,7 @@ export default function GameRoomPage() {
                       {/* Host ribbon */}
                       {player.playerId === room.hostId && (
                         <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary text-black font-serif-gothic text-[9px] font-bold px-2 py-0.5 uppercase tracking-wider rounded-sm shadow-md">
-                          CHỦ PHÒNG
+                          Chủ phòng
                         </div>
                       )}
                       
@@ -348,13 +376,13 @@ export default function GameRoomPage() {
                       {/* Username */}
                       <div className="w-full text-center space-y-1 z-10">
                         <div 
-                          className="text-xs font-semibold font-serif-gothic text-on-background uppercase tracking-wide truncate px-1"
+                          className="text-xs font-semibold font-serif-gothic text-on-background truncate px-1"
                           title={player.username}
                         >
                           {player.username}
                         </div>
                         <div className="text-[9px] font-mono-gothic text-primary/50 tracking-wider">
-                          {player.playerId === room.hostId ? 'VỊ TRÍ: CHỦ TỌA' : 'VỊ TRÍ: ĐỒNG LÒNG'}
+                          {player.playerId === room.hostId ? 'Vị trí: Chủ tọa' : 'Vị trí: Đồng lòng'}
                         </div>
                       </div>
                     </div>
@@ -366,9 +394,9 @@ export default function GameRoomPage() {
               <div className="mt-auto border-t border-outline-variant/20 pt-6 flex justify-between items-center px-4">
                 <button 
                   onClick={handleLeaveRoom}
-                  className="group bg-transparent text-zinc-400 hover:text-red-500 font-serif-gothic text-sm py-2.5 px-6 border border-outline-variant/30 hover:border-red-500/50 transition-all duration-300 uppercase tracking-widest cursor-pointer flex items-center gap-2"
+                  className="group bg-transparent text-zinc-400 hover:text-red-500 font-serif-gothic text-sm py-2.5 px-6 border border-outline-variant/30 hover:border-red-500/50 transition-all duration-300 cursor-pointer flex items-center gap-2"
                 >
-                  RỜI PHÒNG
+                  Rời phòng
                   <span className="opacity-0 group-hover:opacity-100 transition-all duration-300 text-red-500 text-xs -translate-x-2 group-hover:translate-x-0">
                     ▶
                   </span>
@@ -378,16 +406,16 @@ export default function GameRoomPage() {
                   <button 
                     onClick={handleStartGame}
                     disabled={room.players.length < 4}
-                    className="group bg-secondary hover:bg-red-700 text-white font-serif-gothic text-base py-3 px-8 border-2 border-secondary hover:border-red-600 transition-all duration-300 blood-glow-box uppercase tracking-widest cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2"
+                    className="group bg-secondary hover:bg-red-700 text-white font-serif-gothic text-base py-3 px-8 border-2 border-secondary hover:border-red-600 transition-all duration-300 blood-glow-box cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2"
                   >
-                    BẮT ĐẦU NGHI THỨC
+                    Bắt đầu nghi thức
                     <span className="opacity-0 group-hover:opacity-100 transition-all duration-300 text-primary text-xs -translate-x-2 group-hover:translate-x-0">
                       ▶
                     </span>
                   </button>
                 ) : (
                   <div className="text-xs font-mono-gothic text-primary/80 tracking-widest animate-pulse">
-                    ĐANG CHỜ CHỦ PHÒNG KHỞI ĐỘNG NGHI LỄ...
+                    Đang chờ chủ phòng khởi động nghi lễ...
                   </div>
                 )}
               </div>
@@ -424,9 +452,9 @@ export default function GameRoomPage() {
                   // Action button logic
                   let actionBtn = null;
                   
-                  if (me.isAlive && isAlive && !isPlayerSelf) {
+                  if (me.isAlive && isAlive) {
                     if (room.currentPhase === 'NIGHT' && !me.roleActionDone) {
-                      if (me.role === 'WEREWOLF' && player.role !== 'WEREWOLF') {
+                      if (!isPlayerSelf && me.role === 'WEREWOLF' && player.role !== 'WEREWOLF') {
                         actionBtn = (
                           <button 
                             onClick={() => handleNightAction(player.playerId)}
@@ -444,7 +472,7 @@ export default function GameRoomPage() {
                             BẢO VỆ
                           </button>
                         );
-                      } else if (me.role === 'SEER') {
+                      } else if (!isPlayerSelf && me.role === 'SEER') {
                         actionBtn = (
                           <button 
                             onClick={() => handleNightAction(player.playerId)}
@@ -454,7 +482,7 @@ export default function GameRoomPage() {
                           </button>
                         );
                       }
-                    } else if (room.currentPhase === 'VOTING' && !me.hasVoted) {
+                    } else if (room.currentPhase === 'VOTING' && !me.hasVoted && !isPlayerSelf) {
                       actionBtn = (
                         <button 
                           onClick={() => handleCastVote(player.playerId)}
@@ -511,14 +539,14 @@ export default function GameRoomPage() {
                           <div className={`text-[10px] font-mono-gothic mt-1 font-bold ${
                             player.role === 'WEREWOLF' ? 'text-red-500 blood-glow' : 'text-green-400'
                           }`}>
-                            {player.role}
+                            {getRoleLabel(player.role)}
                           </div>
                         )}
                         
                         {/* Vote markers */}
                         {room.currentPhase === 'VOTING' && player.hasVoted && (
                           <span className="inline-block mt-1 text-[10px] font-mono-gothic bg-red-950/40 text-red-400 border border-red-900 px-1 rounded">
-                            ĐÃ VOTE
+                            ĐÃ BỎ PHIẾU
                           </span>
                         )}
                       </div>
@@ -534,7 +562,7 @@ export default function GameRoomPage() {
                 <div className="mt-6 border-t border-outline-variant pt-6 flex justify-center">
                   <button 
                     onClick={handleLeaveRoom}
-                    className="bg-secondary text-white font-serif-gothic text-base py-3 px-8 border-2 border-secondary hover:bg-primary-container transition-colors blood-glow-box uppercase tracking-widest cursor-pointer"
+                    className="bg-secondary text-white font-serif-gothic text-base py-3 px-8 border-2 border-secondary hover:bg-primary-container transition-colors blood-glow-box cursor-pointer"
                   >
                     QUAY VỀ SẢNH CHỜ
                   </button>
@@ -553,23 +581,23 @@ export default function GameRoomPage() {
         <div className="flex border-b border-outline-variant px-4">
           <button 
             onClick={() => setActiveTab('chat')}
-            className={`flex-1 py-2 font-serif-gothic uppercase tracking-wider text-xs border-b-2 cursor-pointer transition-all ${
+            className={`flex-1 py-2 font-serif-gothic text-xs border-b-2 cursor-pointer transition-all ${
               activeTab === 'chat' 
                 ? 'border-secondary text-primary font-semibold' 
                 : 'border-transparent text-on-surface-variant hover:text-primary'
             }`}
           >
-            TRÒ CHUYỆN
+            Trò chuyện
           </button>
           <button 
             onClick={() => setActiveTab('logs')}
-            className={`flex-1 py-2 font-serif-gothic uppercase tracking-wider text-xs border-b-2 cursor-pointer transition-all ${
+            className={`flex-1 py-2 font-serif-gothic text-xs border-b-2 cursor-pointer transition-all ${
               activeTab === 'logs' 
                 ? 'border-secondary text-primary font-semibold' 
                 : 'border-transparent text-on-surface-variant hover:text-primary'
             }`}
           >
-            NHẬT KÝ
+            Nhật ký
           </button>
         </div>
 
@@ -626,7 +654,7 @@ export default function GameRoomPage() {
                   }
                   placeholder={
                     !me.isAlive 
-                      ? "Chat với linh hồn khác..." 
+                      ? "Trò chuyện với linh hồn khác..." 
                       : room.currentPhase === 'NIGHT' && me.role !== 'WEREWOLF'
                         ? "Đêm tối tĩnh lặng..." 
                         : "Nhập tin nhắn..."
@@ -635,9 +663,9 @@ export default function GameRoomPage() {
                 />
                 <button 
                   type="submit"
-                  className="bg-secondary text-white px-4 border border-secondary hover:bg-primary-container transition-colors cursor-pointer text-sm font-serif-gothic uppercase tracking-widest rounded"
+                  className="bg-secondary text-white px-4 border border-secondary hover:bg-primary-container transition-colors cursor-pointer text-sm font-serif-gothic rounded"
                 >
-                  GỬI
+                  Gửi
                 </button>
               </form>
             )}

@@ -1,5 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Noto+Serif:wght@400;600;700&family=Courier+Prime:wght@400;700&family=Literata:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap');
 
 @import "tailwindcss";
 
@@ -20,9 +20,9 @@
   --color-error: #ffb4ab;
   --color-error-container: #93000a;
   
-  --font-serif-gothic: "Cinzel", serif;
-  --font-body-gothic: "Literata", serif;
-  --font-mono-gothic: "Courier Prime", monospace;
+  --font-serif-gothic: "Be Vietnam Pro", sans-serif;
+  --font-body-gothic: "Be Vietnam Pro", sans-serif;
+  --font-mono-gothic: "Be Vietnam Pro", sans-serif;
 }
 
 :root {
@@ -33,7 +33,30 @@
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: "Literata", serif;
+  font-family: "Be Vietnam Pro", sans-serif;
+  letter-spacing: 0;
+  text-rendering: geometricPrecision;
+}
+
+.font-serif-gothic,
+.font-body-gothic,
+.font-mono-gothic {
+  letter-spacing: 0;
+}
+
+[class*="tracking-"] {
+  letter-spacing: 0;
+}
+
+.uppercase {
+  text-transform: none;
+}
+
+input,
+button,
+textarea {
+  font-family: "Be Vietnam Pro", sans-serif;
+  letter-spacing: 0;
 }
 
 /* Custom Gothic styling class declarations */
@@ -46,6 +69,233 @@ body {
 .demonic-bg {
   background-color: #8b0000;
   background-image: radial-gradient(circle at center, rgba(14, 14, 14, 0.4) 0%, #0e0e0e 100%);
+}
+
+.ritual-stage {
+  isolation: isolate;
+  background-color: #070809;
+  background-image:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.22), rgba(28, 0, 0, 0.06) 42%, rgba(0, 0, 0, 0.28)),
+    radial-gradient(ellipse at 50% 48%, rgba(124, 0, 0, 0.06), rgba(0, 0, 0, 0.24) 78%),
+    url('/images/lobby-ritual-background.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.ritual-stage::before,
+.ritual-stage::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.ritual-stage::before {
+  background:
+    radial-gradient(ellipse at 50% 66%, rgba(213, 220, 216, 0.12), transparent 28%),
+    radial-gradient(ellipse at 18% 76%, rgba(188, 198, 203, 0.1), transparent 34%),
+    radial-gradient(ellipse at 82% 76%, rgba(212, 205, 190, 0.09), transparent 32%);
+  filter: blur(14px);
+  opacity: 0.38;
+  mix-blend-mode: screen;
+  animation: ritual-breathing-mist 18s ease-in-out infinite alternate;
+}
+
+.ritual-stage::after {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.42) 0%, transparent 24%, transparent 72%, rgba(0, 0, 0, 0.5) 100%),
+    radial-gradient(ellipse at center, transparent 0%, transparent 58%, rgba(0, 0, 0, 0.34) 100%);
+}
+
+.ritual-vignette,
+.ritual-moonlight,
+.ritual-sigil,
+.ritual-fog,
+.ritual-candle {
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
+}
+
+.ritual-vignette {
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 56%, rgba(125, 0, 0, 0.1), transparent 36%),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.2), transparent 26%, transparent 74%, rgba(0, 0, 0, 0.24));
+  z-index: 1;
+}
+
+.ritual-moonlight {
+  inset: -12% -8%;
+  background:
+    linear-gradient(102deg, transparent 0%, rgba(126, 155, 170, 0.09) 30%, transparent 45%),
+    linear-gradient(76deg, transparent 30%, rgba(244, 183, 112, 0.05) 49%, transparent 63%);
+  filter: blur(1px);
+  opacity: 0.9;
+}
+
+.ritual-sigil {
+  left: 50%;
+  top: 61%;
+  width: min(58vw, 640px);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(255, 180, 168, 0.16);
+  border-radius: 50%;
+  background:
+    repeating-conic-gradient(
+      from 8deg,
+      rgba(255, 180, 168, 0.13) 0deg 2deg,
+      transparent 2deg 18deg
+    );
+  -webkit-mask:
+    radial-gradient(circle, transparent 0 58%, #000 58.5% 59.5%, transparent 60% 67%, #000 67.5% 68.5%, transparent 69%);
+  mask:
+    radial-gradient(circle, transparent 0 58%, #000 58.5% 59.5%, transparent 60% 67%, #000 67.5% 68.5%, transparent 69%);
+  opacity: 0.28;
+  filter: blur(0.3px);
+  animation: ritual-turn 72s linear infinite;
+}
+
+.ritual-sigil::before,
+.ritual-sigil::after {
+  content: "";
+  position: absolute;
+  inset: 18%;
+  border: 1px solid rgba(233, 195, 73, 0.12);
+  transform: rotate(45deg);
+}
+
+.ritual-sigil::after {
+  inset: 30%;
+  transform: rotate(0deg);
+}
+
+.ritual-fog {
+  left: -24%;
+  right: -24%;
+  height: 54%;
+  background:
+    radial-gradient(ellipse at 18% 60%, rgba(208, 216, 216, 0.2), transparent 42%),
+    radial-gradient(ellipse at 48% 72%, rgba(184, 196, 196, 0.17), transparent 46%),
+    radial-gradient(ellipse at 78% 58%, rgba(230, 212, 184, 0.13), transparent 39%),
+    linear-gradient(90deg, transparent, rgba(230, 230, 230, 0.08), transparent);
+  filter: blur(22px);
+  mix-blend-mode: screen;
+  opacity: 0.26;
+}
+
+.ritual-fog-a {
+  bottom: 5%;
+  animation: ritual-fog-drift 24s ease-in-out infinite alternate;
+}
+
+.ritual-fog-b {
+  bottom: 28%;
+  opacity: 0.26;
+  transform: scaleY(0.65);
+  animation: ritual-fog-drift 32s ease-in-out infinite alternate-reverse;
+}
+
+.ritual-candle {
+  bottom: 8%;
+  width: 2px;
+  height: 34%;
+  background: linear-gradient(to top, transparent, rgba(233, 195, 73, 0.11), transparent);
+  box-shadow:
+    0 0 28px rgba(233, 195, 73, 0.18),
+    0 0 70px rgba(139, 0, 0, 0.28);
+  transform-origin: bottom;
+  animation: ritual-flicker 4.6s ease-in-out infinite;
+}
+
+.ritual-candle::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 72%;
+  width: 46px;
+  height: 110px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse, rgba(255, 180, 104, 0.2) 0%, rgba(139, 0, 0, 0.09) 38%, transparent 70%);
+  filter: blur(8px);
+}
+
+.ritual-candle-left {
+  left: clamp(36px, 9vw, 150px);
+}
+
+.ritual-candle-right {
+  right: clamp(36px, 9vw, 150px);
+  animation-delay: -1.8s;
+}
+
+.ritual-book {
+  z-index: 2;
+  transform: translateZ(0);
+  animation: ritual-book-breathe 6s ease-in-out infinite;
+}
+
+@keyframes ritual-turn {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes ritual-fog-drift {
+  from {
+    transform: translateX(-5%) translateY(0) scale(1);
+  }
+  to {
+    transform: translateX(6%) translateY(-14px) scale(1.04);
+  }
+}
+
+@keyframes ritual-breathing-mist {
+  from {
+    transform: translateY(10px) scale(1);
+    opacity: 0.48;
+  }
+  to {
+    transform: translateY(-8px) scale(1.05);
+    opacity: 0.74;
+  }
+}
+
+@keyframes ritual-flicker {
+  0%, 100% {
+    opacity: 0.62;
+    transform: scaleY(1);
+  }
+  45% {
+    opacity: 0.9;
+    transform: scaleY(1.04);
+  }
+  70% {
+    opacity: 0.48;
+    transform: scaleY(0.96);
+  }
+}
+
+@keyframes ritual-book-breathe {
+  0%, 100% {
+    filter: drop-shadow(0 18px 34px rgba(0, 0, 0, 0.9)) drop-shadow(0 0 18px rgba(233, 195, 73, 0.12));
+  }
+  50% {
+    filter: drop-shadow(0 24px 52px rgba(0, 0, 0, 0.92)) drop-shadow(0 0 28px rgba(139, 0, 0, 0.42));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ritual-sigil,
+  .ritual-fog,
+  .ritual-candle,
+  .ritual-book,
+  .ritual-stage::before {
+    animation: none;
+  }
 }
 
 .border-gothic {
