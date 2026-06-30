@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSocket } from '@/context/SocketContext';
 import AboutModal from './components/AboutModal';
@@ -219,6 +220,22 @@ export default function LobbyPage() {
                 </button>
               </form>
             </div>
+          </div>
+
+          {/* Offline fallback */}
+          <div className="pt-2 border-t border-outline-variant/20">
+            <Link
+              href="/offline"
+              className="group w-full bg-black/35 text-[#e9c349] hover:text-white font-serif-gothic text-base py-3 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer border border-[#e9c349]/20 hover:border-[#e9c349]/50 rounded-sm"
+            >
+              Chơi offline trong lớp
+              <span className="opacity-0 group-hover:opacity-100 transition-all duration-300 text-primary text-xs -translate-x-2 group-hover:translate-x-0">
+                ▶
+              </span>
+            </Link>
+            <p className="mt-2 text-[11px] text-zinc-500 text-center">
+              Dùng khi mất mạng hoặc không kết nối được máy chủ.
+            </p>
           </div>
 
           {/* Error Message */}

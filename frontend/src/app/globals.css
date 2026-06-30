@@ -510,6 +510,309 @@ textarea {
   background: linear-gradient(135deg, rgba(26, 75, 98, 0.96), rgba(6, 18, 24, 0.92));
 }
 
+.offline-stage {
+  position: relative;
+  isolation: isolate;
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.62), rgba(0, 0, 0, 0.82)),
+    url('/images/lobby-ritual-background.png');
+  background-size: cover;
+  background-position: center;
+}
+
+.offline-stage__mist {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse at 28% 78%, rgba(210, 220, 220, 0.14), transparent 36%),
+    radial-gradient(ellipse at 76% 30%, rgba(139, 0, 0, 0.12), transparent 32%);
+  filter: blur(18px);
+}
+
+.offline-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 28px clamp(18px, 4vw, 48px);
+  border-bottom: 1px solid rgba(90, 64, 60, 0.55);
+  background: rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(10px);
+}
+
+.offline-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
+  gap: 20px;
+  padding: clamp(18px, 4vw, 48px);
+}
+
+.offline-panel {
+  border: 1px solid rgba(90, 64, 60, 0.72);
+  border-radius: 6px;
+  background: rgba(10, 8, 8, 0.78);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.54);
+  backdrop-filter: blur(12px);
+  padding: clamp(18px, 3vw, 28px);
+}
+
+.offline-main-panel {
+  min-height: 620px;
+}
+
+.offline-phase-bar {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 24px;
+  color: #e9c349;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.offline-title {
+  color: #ffb4a8;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.offline-help {
+  color: rgba(229, 226, 225, 0.68);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.offline-error {
+  color: #ffb4ab;
+  font-size: 13px;
+}
+
+.offline-textarea,
+.offline-field select {
+  width: 100%;
+  border: 1px solid rgba(90, 64, 60, 0.86);
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.56);
+  color: #e5e2e1;
+  outline: none;
+}
+
+.offline-textarea {
+  padding: 14px;
+  resize: vertical;
+}
+
+.offline-field {
+  display: grid;
+  gap: 8px;
+  color: #e5e2e1;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.offline-field select {
+  padding: 11px 12px;
+}
+
+.offline-primary-button,
+.offline-secondary-button,
+.offline-ghost-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  border-radius: 5px;
+  padding: 10px 18px;
+  font-weight: 800;
+  transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+
+.offline-primary-button {
+  border: 1px solid #8b0000;
+  background: #8b0000;
+  color: #fff;
+}
+
+.offline-primary-button:hover {
+  background: #a40000;
+  border-color: #ffb4a8;
+}
+
+.offline-secondary-button,
+.offline-ghost-button {
+  border: 1px solid rgba(255, 180, 168, 0.32);
+  background: rgba(0, 0, 0, 0.36);
+  color: #ffb4a8;
+}
+
+.offline-secondary-button:hover,
+.offline-ghost-button:hover {
+  border-color: #ffb4a8;
+  color: #fff;
+}
+
+.offline-action-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.offline-result {
+  border: 1px solid rgba(233, 195, 73, 0.38);
+  border-radius: 5px;
+  background: rgba(233, 195, 73, 0.08);
+  color: #e9c349;
+  padding: 12px 14px;
+}
+
+.offline-reveal {
+  display: grid;
+  justify-items: center;
+  gap: 22px;
+  text-align: center;
+}
+
+.offline-role-card {
+  position: relative;
+  width: min(320px, 78vw);
+  aspect-ratio: 3 / 4.2;
+  perspective: 900px;
+}
+
+.offline-role-card__front,
+.offline-role-card__back {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 12px;
+  border: 2px solid rgba(255, 180, 168, 0.32);
+  border-radius: 8px;
+  backface-visibility: hidden;
+  transition: transform 0.65s ease;
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.7);
+}
+
+.offline-role-card__front {
+  background:
+    linear-gradient(135deg, rgba(18, 0, 0, 0.92), rgba(72, 0, 0, 0.8)),
+    radial-gradient(circle at center, rgba(255, 180, 168, 0.14), transparent 54%);
+}
+
+.offline-role-card__back {
+  transform: rotateY(180deg);
+  background:
+    linear-gradient(135deg, rgba(139, 0, 0, 0.9), rgba(0, 0, 0, 0.92)),
+    url('/images/sidebar_texture.png');
+  background-size: cover;
+}
+
+.offline-role-card span {
+  color: #ffb4a8;
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.offline-role-card small {
+  color: rgba(229, 226, 225, 0.7);
+}
+
+.offline-role-card.is-visible .offline-role-card__front {
+  transform: rotateY(180deg);
+}
+
+.offline-role-card.is-visible .offline-role-card__back {
+  transform: rotateY(360deg);
+}
+
+.offline-player-list,
+.offline-log {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.offline-player {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid rgba(90, 64, 60, 0.48);
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.28);
+  padding: 10px 12px;
+}
+
+.offline-player div {
+  display: grid;
+  gap: 3px;
+}
+
+.offline-player span,
+.offline-player small {
+  color: rgba(229, 226, 225, 0.58);
+  font-size: 12px;
+}
+
+.offline-player.is-dead {
+  opacity: 0.58;
+}
+
+.offline-wolves {
+  margin-top: 18px;
+  border: 1px solid rgba(139, 0, 0, 0.46);
+  border-radius: 5px;
+  background: rgba(139, 0, 0, 0.08);
+  padding: 12px;
+  color: rgba(229, 226, 225, 0.78);
+  font-size: 13px;
+}
+
+.offline-wolves h3,
+.offline-log h3 {
+  color: #e9c349;
+  font-size: 14px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.offline-log-item {
+  border-left: 2px solid #8b0000;
+  background: rgba(0, 0, 0, 0.26);
+  padding: 9px 11px;
+}
+
+.offline-log-item span {
+  color: rgba(255, 180, 168, 0.7);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.offline-log-item p {
+  color: rgba(229, 226, 225, 0.82);
+  font-size: 13px;
+  margin-top: 3px;
+}
+
+@media (max-width: 900px) {
+  .offline-header,
+  .offline-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .offline-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .offline-action-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @keyframes game-mist-drift {
   from {
     transform: translateX(-4%) translateY(0);
