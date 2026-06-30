@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { useSocket } from '@/context/SocketContext';
 import AboutModal from '@/app/components/AboutModal';
+import PhaseTransitionCanvas from '@/app/components/PhaseTransitionCanvas';
 
 const getStoredPlayerId = () => {
   if (typeof window === 'undefined') return '';
@@ -26,40 +27,47 @@ const ROLE_LABELS = {
 
 const getRoleLabel = (role) => ROLE_LABELS[role] || 'Chưa rõ';
 
+const ANONYMOUS_ROLE_LOGO = '/images/anonymous-logo-small.png';
+
 const ROLE_CARD_META = {
   WEREWOLF: {
     title: 'Ma Sói',
     faction: 'Phe Ma Sói',
     omen: 'Ẩn mình ban ngày, săn mồi khi đêm xuống.',
     sigil: 'wolf',
-    cardImage: '/images/werewolf-card.png'
+    cardImage: '/images/werewolf-card.png',
+    logoSmall: '/images/werewolf-logo-small.png'
   },
   SEER: {
     title: 'Tiên Tri',
     faction: 'Phe Dân Làng',
     omen: 'Nhìn xuyên mặt nạ, tìm dấu vết trong bóng tối.',
     sigil: 'seer',
-    cardImage: '/images/prophet-card.png'
+    cardImage: '/images/prophet-card.png',
+    logoSmall: '/images/prophet-logo-small.png'
   },
   BODYGUARD: {
     title: 'Bảo Vệ',
     faction: 'Phe Dân Làng',
     omen: 'Canh giữ một linh hồn trước nanh vuốt trong đêm.',
     sigil: 'guard',
-    cardImage: '/images/protector-card.png'
+    cardImage: '/images/protector-card.png',
+    logoSmall: '/images/protector-logo-small.png'
   },
   VILLAGER: {
     title: 'Dân Làng',
     faction: 'Phe Dân Làng',
     omen: 'Không có quyền năng, chỉ còn lý trí và lời nói.',
     sigil: 'villager',
-    cardImage: '/images/villager-card.png'
+    cardImage: '/images/villager-card.png',
+    logoSmall: '/images/villager-logo-small.png'
   },
   NONE: {
     title: 'Chưa rõ',
     faction: 'Chưa thuộc phe',
     omen: 'Nghi lễ chưa gọi tên bạn.',
-    sigil: 'unknown'
+    sigil: 'unknown',
+    logoSmall: ANONYMOUS_ROLE_LOGO
   }
 };
 
@@ -230,7 +238,7 @@ export default function GameRoomPage() {
 
         const hideTimerId = setTimeout(() => {
           setPhaseOverlay(null);
-        }, 2200);
+        }, 2700);
 
         lastPhaseKeyRef.current = currentPhaseKey;
         return () => {
@@ -381,10 +389,14 @@ export default function GameRoomPage() {
       bannerDesc = 'Đến giờ phán xét. Hãy bỏ phiếu treo cổ kẻ ông chủ nghi ngờ.';
     }
 
+    const phaseLogoSrc = phaseTone === 'night' ? '/images/night-logo.png' : '/images/day-logo.png';
+
     return (
       <div className={`phase-header phase-header-${phaseTone}`}>
         <div className="phase-header__identity">
-          <span className={`phase-header__icon phase-header__icon-${phaseTone}`} aria-hidden="true" />
+          <span className={`phase-header__icon phase-header__icon-${phaseTone}`} aria-hidden="true">
+            <Image src={phaseLogoSrc} alt="" width={58} height={58} className="phase-header__icon-image" priority />
+          </span>
           <div>
             <h1>
               {bannerTitle}
@@ -415,16 +427,7 @@ export default function GameRoomPage() {
 
   return (
     <div className={`bg-background text-on-background h-screen flex flex-col md:flex-row font-body-gothic textured-bg overflow-hidden ${room.status === 'LOBBY' ? 'room-shell-lobby' : ''} ${room.status === 'PLAYING' ? 'room-shell-playing' : ''} ${room.currentPhase === 'NIGHT' ? 'room-shell-night' : ''} ${room.currentPhase === 'DAY' ? 'room-shell-day' : ''} ${room.currentPhase === 'VOTING' ? 'room-shell-voting' : ''}`}>
-      {phaseOverlay && (
-        <div className={`phase-transition phase-transition-${phaseOverlay.tone}`}>
-          <div className="phase-transition__sigil" />
-          <div className="phase-transition__content">
-            <div className="phase-transition__eyebrow">Nghi thức chuyển pha</div>
-            <h2>{phaseOverlay.title}</h2>
-            <p>{phaseOverlay.subtitle}</p>
-          </div>
-        </div>
-      )}
+      {phaseOverlay && <PhaseTransitionCanvas overlay={phaseOverlay} />}
       
       {/* Main Game Screen */}
       <main 
@@ -476,20 +479,39 @@ export default function GameRoomPage() {
                 aria-label={showRole ? 'Ẩn vai trò' : 'Xem vai trò'}
               >
                 <span className="role-card-showcase__face role-card-showcase__front">
-                  <span className="role-card-showcase__seal">?</span>
+                  <span className="role-card-showcase__seal">
+                    <Image
+                      src={ANONYMOUS_ROLE_LOGO}
+                      alt=""
+                      width={96}
+                      height={96}
+                      className="role-card-showcase__seal-image"
+                    />
+                  </span>
                   <span className="role-card-showcase__hint">Bấm để mở vai trò</span>
                 </span>
 
                 <span className={`role-card-showcase__face role-card-showcase__back ${myRoleMeta.cardImage ? 'role-card-showcase__back--image' : ''}`}>
                   {myRoleMeta.cardImage ? (
-                    <Image
-                      src={myRoleMeta.cardImage}
-                      alt={`Lá bài ${myRoleMeta.title}`}
-                      width={1024}
-                      height={1536}
-                      className="role-card-showcase__image"
-                      priority={room.currentPhase === 'NIGHT'}
-                    />
+                    <>
+                      <Image
+                        src={myRoleMeta.cardImage}
+                        alt={`Lá bài ${myRoleMeta.title}`}
+                        width={1024}
+                        height={1536}
+                        className="role-card-showcase__image"
+                        priority={room.currentPhase === 'NIGHT'}
+                      />
+                      <span className="role-card-showcase__role-logo" aria-hidden="true">
+                        <Image
+                          src={myRoleMeta.logoSmall || ANONYMOUS_ROLE_LOGO}
+                          alt=""
+                          width={72}
+                          height={72}
+                          className="role-card-showcase__role-logo-image"
+                        />
+                      </span>
+                    </>
                   ) : (
                     <>
                       <span className={`role-card-art role-card-art--${myRoleMeta.sigil}`} aria-hidden="true">
@@ -657,13 +679,14 @@ export default function GameRoomPage() {
                     }
                   }
 
-                  // Determine display role (if public, show role)
-                  const showActualRole = room.status === 'FINISHED' || !isAlive || (player.role !== 'NONE' && player.role !== undefined);
-                  const avatarClass = !isAlive
-                    ? 'is-spirit'
-                    : showActualRole && player.role === 'WEREWOLF'
-                      ? 'is-wolf'
-                      : 'is-hooded';
+                  const hasConcreteRole = player.role && player.role !== 'NONE';
+                  const showActualRole = hasConcreteRole && (
+                    room.status === 'FINISHED' ||
+                    !isAlive ||
+                    (isPlayerSelf && showRole)
+                  );
+                  const playerRoleMeta = showActualRole ? getRoleCardMeta(player.role) : ROLE_CARD_META.NONE;
+                  const avatarClass = showActualRole ? 'is-known' : 'is-anonymous';
 
                   return (
                     <div 
@@ -675,7 +698,13 @@ export default function GameRoomPage() {
 
                       <div className="night-player-card__inner">
                         <div className={`night-player-card__avatar ${avatarClass}`} aria-hidden="true">
-                          <span className="night-player-card__avatar-mark" />
+                          <Image
+                            src={playerRoleMeta.logoSmall || ANONYMOUS_ROLE_LOGO}
+                            alt=""
+                            width={64}
+                            height={64}
+                            className="night-player-card__avatar-image"
+                          />
                         </div>
                         
                         <div className="night-player-card__name" title={player.username}>

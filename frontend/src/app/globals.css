@@ -1095,7 +1095,6 @@ textarea {
   background:
     linear-gradient(180deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.42)),
     radial-gradient(ellipse at center, transparent 0 54%, rgba(0, 0, 0, 0.5) 100%);
-  animation: stage-nightfall 1.7s ease-out both;
 }
 
 .game-stage-day {
@@ -1109,7 +1108,6 @@ textarea {
   background:
     linear-gradient(180deg, rgba(255, 245, 210, 0.2), rgba(58, 32, 12, 0.16)),
     radial-gradient(ellipse at center, transparent 0 58%, rgba(42, 22, 8, 0.22) 100%);
-  animation: stage-daybreak 1.7s ease-out both;
 }
 
 .game-stage-voting {
@@ -1123,7 +1121,6 @@ textarea {
   background:
     linear-gradient(180deg, rgba(25, 0, 0, 0.24), rgba(0, 0, 0, 0.42)),
     radial-gradient(ellipse at center, transparent 0 54%, rgba(0, 0, 0, 0.42) 100%);
-  animation: stage-vote-gloom 1.2s ease-out both;
 }
 
 .game-stage-finished {
@@ -1168,81 +1165,95 @@ textarea {
   background: radial-gradient(ellipse at center, transparent 0%, transparent 44%, rgba(0, 0, 0, 0.58) 100%);
 }
 
-.phase-transition {
+.phase-cinematic {
   position: fixed;
   inset: 0;
   z-index: 80;
   display: grid;
   place-items: center;
   pointer-events: none;
-  background:
-    radial-gradient(ellipse at center, rgba(255, 180, 168, 0.12), transparent 30%),
-    rgba(0, 0, 0, 0.68);
-  animation: phase-fade 2.2s ease forwards;
+  overflow: hidden;
 }
 
-.phase-transition__content {
+.phase-cinematic__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.phase-cinematic__copy {
   position: relative;
   z-index: 2;
-  width: min(520px, calc(100vw - 48px));
-  border-top: 1px solid rgba(255, 180, 168, 0.4);
-  border-bottom: 1px solid rgba(255, 180, 168, 0.24);
-  padding: 28px 18px;
+  width: min(820px, calc(100vw - 56px));
+  padding: 0 18px;
   text-align: center;
-  background: linear-gradient(90deg, transparent, rgba(10, 0, 0, 0.68), transparent);
-  box-shadow: 0 0 70px rgba(0, 0, 0, 0.78);
+  text-shadow:
+    0 2px 18px rgba(0, 0, 0, 0.9),
+    0 0 34px rgba(139, 0, 0, 0.42);
+  animation: phase-copy-cinematic 2.7s ease both;
 }
 
-.phase-transition__eyebrow {
-  color: #e9c349;
-  font-size: 11px;
+.phase-cinematic__copy::before,
+.phase-cinematic__copy::after {
+  content: "";
+  display: block;
+  width: min(420px, 70vw);
+  height: 1px;
+  margin: 0 auto 22px;
+  background: linear-gradient(90deg, transparent, rgba(241, 210, 154, 0.56), transparent);
+}
+
+.phase-cinematic__copy::after {
+  margin: 22px auto 0;
+}
+
+.phase-cinematic__copy span {
+  display: block;
+  color: #f1d29a;
+  font-family: var(--font-body-gothic);
+  font-size: 0.76rem;
   font-weight: 700;
-  margin-bottom: 8px;
 }
 
-.phase-transition h2 {
-  color: #ffb4a8;
-  font-size: clamp(28px, 4vw, 48px);
-  font-weight: 800;
-  text-shadow: 0 0 24px rgba(139, 0, 0, 0.9);
-}
-
-.phase-transition p {
-  color: rgba(229, 226, 225, 0.8);
-  font-size: 14px;
+.phase-cinematic__copy h2 {
   margin-top: 10px;
-  line-height: 1.65;
+  color: #ffb4a8;
+  font-family: var(--font-serif-gothic);
+  font-size: clamp(3rem, 7vw, 7.2rem);
+  font-weight: 900;
+  line-height: 0.96;
+  text-shadow:
+    0 0 18px rgba(255, 180, 168, 0.42),
+    0 0 42px rgba(220, 45, 32, 0.55),
+    0 8px 36px rgba(0, 0, 0, 0.85);
 }
 
-.phase-transition__sigil {
-  position: absolute;
-  width: min(68vw, 620px);
-  aspect-ratio: 1;
-  border: 1px solid rgba(255, 180, 168, 0.2);
-  border-radius: 50%;
-  background: repeating-conic-gradient(from 0deg, rgba(255, 180, 168, 0.14) 0deg 2deg, transparent 2deg 14deg);
-  -webkit-mask: radial-gradient(circle, transparent 0 56%, #000 57% 58%, transparent 59% 64%, #000 65% 66%, transparent 67%);
-  mask: radial-gradient(circle, transparent 0 56%, #000 57% 58%, transparent 59% 64%, #000 65% 66%, transparent 67%);
-  animation: phase-sigil-turn 2.2s ease-out forwards;
+.phase-cinematic__copy p {
+  margin: 18px auto 0;
+  max-width: 640px;
+  color: rgba(243, 226, 194, 0.86);
+  font-family: var(--font-body-gothic);
+  font-size: clamp(0.88rem, 1.2vw, 1.08rem);
+  line-height: 1.7;
 }
 
-.phase-transition-night {
-  background:
-    radial-gradient(ellipse at center, rgba(74, 111, 164, 0.16), transparent 34%),
-    rgba(0, 0, 0, 0.74);
+.phase-cinematic-day .phase-cinematic__copy {
+  text-shadow:
+    0 2px 18px rgba(58, 32, 12, 0.56),
+    0 0 38px rgba(255, 211, 122, 0.34);
 }
 
-.phase-transition-day {
-  background:
-    radial-gradient(ellipse at center, rgba(233, 195, 73, 0.16), transparent 34%),
-    rgba(0, 0, 0, 0.58);
+.phase-cinematic-day .phase-cinematic__copy h2 {
+  color: #ffe3aa;
+  text-shadow:
+    0 0 16px rgba(255, 238, 190, 0.44),
+    0 0 46px rgba(255, 196, 92, 0.56),
+    0 8px 34px rgba(42, 22, 8, 0.7);
 }
 
-.phase-transition-vote,
-.phase-transition-mark {
-  background:
-    radial-gradient(ellipse at center, rgba(139, 0, 0, 0.28), transparent 36%),
-    rgba(0, 0, 0, 0.7);
+.phase-cinematic-vote .phase-cinematic__copy h2 {
+  color: #ff8f78;
 }
 
 .role-reveal-card {
@@ -1477,17 +1488,21 @@ textarea {
   position: relative;
   z-index: 1;
   display: grid;
-  width: 78px;
-  height: 78px;
+  width: 96px;
+  height: 96px;
   place-items: center;
-  border: 1px solid rgba(233, 195, 73, 0.44);
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.42);
-  color: #e9c349;
-  font-family: var(--font-serif-gothic);
-  font-size: 2.4rem;
-  font-weight: 900;
-  text-shadow: 0 0 18px rgba(233, 195, 73, 0.44);
+  background: transparent;
+}
+
+.role-card-showcase__seal-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter:
+    drop-shadow(0 0 14px rgba(241, 210, 154, 0.26))
+    drop-shadow(0 10px 18px rgba(0, 0, 0, 0.55));
 }
 
 .role-card-showcase__hint {
@@ -1522,6 +1537,26 @@ textarea {
   height: 100%;
   border-radius: 8px;
   object-fit: cover;
+}
+
+.role-card-showcase__role-logo {
+  pointer-events: none;
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  z-index: 2;
+  width: 64px;
+  height: 64px;
+  filter:
+    drop-shadow(0 0 14px rgba(241, 210, 154, 0.32))
+    drop-shadow(0 10px 18px rgba(0, 0, 0, 0.58));
+}
+
+.role-card-showcase__role-logo-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .role-card-showcase.is-revealed .role-card-showcase__front {
@@ -1808,35 +1843,26 @@ textarea {
   height: 58px;
   flex: 0 0 auto;
   place-items: center;
-  border: 1px solid rgba(184, 146, 90, 0.46);
   border-radius: 50%;
-  background:
-    radial-gradient(circle at 48% 44%, rgba(125, 84, 210, 0.62) 0 28%, transparent 29%),
-    radial-gradient(circle, rgba(43, 24, 84, 0.85), rgba(5, 2, 2, 0.92) 68%);
-  box-shadow:
-    inset 0 0 18px rgba(0, 0, 0, 0.74),
-    0 0 24px rgba(118, 78, 255, 0.24);
+  overflow: hidden;
+  background: transparent;
+  box-shadow: 0 0 24px rgba(118, 78, 255, 0.18);
 }
 
-.phase-header__icon::before {
-  content: "";
-  width: 28px;
-  height: 24px;
-  background: rgba(7, 6, 10, 0.92);
-  clip-path: polygon(7% 54%, 32% 16%, 47% 42%, 72% 10%, 68% 48%, 94% 68%, 58% 74%, 40% 95%, 32% 72%);
-  transform: rotate(-8deg);
+.phase-header__icon-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: drop-shadow(0 0 10px rgba(241, 210, 154, 0.18));
 }
 
 .phase-header__icon-day {
-  background:
-    radial-gradient(circle at 50% 50%, rgba(241, 210, 154, 0.68) 0 22%, transparent 23%),
-    radial-gradient(circle, rgba(90, 53, 12, 0.7), rgba(5, 2, 2, 0.92) 68%);
+  box-shadow: 0 0 24px rgba(241, 210, 154, 0.16);
 }
 
 .phase-header__icon-vote {
-  background:
-    radial-gradient(circle at 50% 50%, rgba(184, 50, 36, 0.6) 0 22%, transparent 23%),
-    radial-gradient(circle, rgba(58, 8, 8, 0.88), rgba(5, 2, 2, 0.92) 68%);
+  box-shadow: 0 0 24px rgba(184, 50, 36, 0.18);
 }
 
 .phase-header h1 {
@@ -2188,47 +2214,32 @@ textarea {
 .night-player-card__avatar {
   position: relative;
   display: grid;
-  width: 56px;
-  height: 56px;
+  width: 64px;
+  height: 64px;
   margin-bottom: 12px;
   place-items: center;
-  border: 1px solid rgba(184, 146, 90, 0.26);
   border-radius: 50%;
-  background:
-    radial-gradient(circle at 50% 42%, rgba(118, 78, 255, 0.24), transparent 44%),
-    #090708;
-  box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.72);
+  background: transparent;
 }
 
-.night-player-card__avatar::after {
-  content: "";
-  position: absolute;
-  inset: -5px;
-  border: 1px dashed rgba(184, 146, 90, 0.18);
-  border-radius: 50%;
-}
-
-.night-player-card__avatar-mark {
+.night-player-card__avatar-image {
   display: block;
-  width: 28px;
-  height: 30px;
-  background: linear-gradient(#6f45d6, #2a1459);
-  clip-path: polygon(50% 0, 72% 18%, 82% 52%, 100% 100%, 0 100%, 18% 52%, 28% 18%);
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter:
+    drop-shadow(0 0 12px rgba(118, 78, 255, 0.18))
+    drop-shadow(0 8px 16px rgba(0, 0, 0, 0.56));
 }
 
-.night-player-card__avatar.is-wolf .night-player-card__avatar-mark {
-  width: 32px;
-  height: 28px;
-  background: linear-gradient(#c6c6c6, #5c6068);
-  clip-path: polygon(7% 54%, 31% 13%, 47% 42%, 72% 9%, 68% 48%, 94% 68%, 58% 75%, 39% 94%, 32% 72%);
+.night-player-card__avatar.is-known .night-player-card__avatar-image {
+  filter:
+    drop-shadow(0 0 14px rgba(241, 210, 154, 0.25))
+    drop-shadow(0 8px 16px rgba(0, 0, 0, 0.56));
 }
 
-.night-player-card__avatar.is-spirit .night-player-card__avatar-mark {
-  width: 26px;
-  height: 32px;
-  border-radius: 50% 50% 45% 45%;
-  background: linear-gradient(#d9d7ff, #646171);
-  clip-path: polygon(50% 0, 76% 18%, 86% 62%, 68% 100%, 50% 84%, 32% 100%, 14% 62%, 24% 18%);
+.night-player-card__avatar.is-anonymous .night-player-card__avatar-image {
+  opacity: 0.92;
 }
 
 .night-player-card__name {
@@ -2336,7 +2347,6 @@ textarea {
   background:
     linear-gradient(180deg, rgba(48, 0, 0, 0.26), rgba(0, 0, 0, 0.5)),
     radial-gradient(ellipse at center, transparent 0 48%, rgba(0, 0, 0, 0.54) 100%);
-  animation: stage-vote-gloom 1.25s ease-out both;
 }
 
 .room-shell-voting .game-stage-voting::after {
@@ -2771,29 +2781,21 @@ textarea {
   }
 }
 
-@keyframes phase-fade {
+@keyframes phase-copy-cinematic {
   0% {
     opacity: 0;
+    transform: translateY(22px) scale(0.98);
+    filter: blur(8px);
   }
-  15%, 72% {
+  20%, 74% {
     opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
   }
   100% {
     opacity: 0;
-  }
-}
-
-@keyframes phase-sigil-turn {
-  from {
-    opacity: 0;
-    transform: scale(0.78) rotate(-18deg);
-  }
-  35% {
-    opacity: 0.62;
-  }
-  to {
-    opacity: 0;
-    transform: scale(1.12) rotate(42deg);
+    transform: translateY(-18px) scale(1.01);
+    filter: blur(7px);
   }
 }
 
@@ -2805,51 +2807,6 @@ textarea {
   50% {
     filter: brightness(1.22);
     transform: translateY(-1px);
-  }
-}
-
-@keyframes stage-nightfall {
-  0% {
-    opacity: 0;
-    background:
-      linear-gradient(180deg, rgba(255, 244, 216, 0.22), rgba(52, 28, 12, 0.08)),
-      radial-gradient(ellipse at center, transparent 0 62%, rgba(80, 42, 16, 0.12) 100%);
-  }
-  48% {
-    opacity: 0.72;
-  }
-  100% {
-    opacity: 1;
-    background:
-      linear-gradient(180deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.42)),
-      radial-gradient(ellipse at center, transparent 0 54%, rgba(0, 0, 0, 0.5) 100%);
-  }
-}
-
-@keyframes stage-daybreak {
-  0% {
-    opacity: 1;
-    background:
-      linear-gradient(180deg, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.62)),
-      radial-gradient(ellipse at center, transparent 0 50%, rgba(0, 0, 0, 0.58) 100%);
-  }
-  55% {
-    opacity: 0.82;
-  }
-  100% {
-    opacity: 1;
-    background:
-      linear-gradient(180deg, rgba(255, 245, 210, 0.2), rgba(58, 32, 12, 0.16)),
-      radial-gradient(ellipse at center, transparent 0 58%, rgba(42, 22, 8, 0.22) 100%);
-  }
-}
-
-@keyframes stage-vote-gloom {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
   }
 }
 
@@ -2952,14 +2909,10 @@ textarea {
 
 @media (prefers-reduced-motion: reduce) {
   .game-stage__mist,
-  .phase-transition,
-  .phase-transition__sigil,
+  .phase-cinematic__copy,
   .role-reveal-card__face,
   .role-card-showcase__face,
-  .lobby-player-card__avatar::before,
-  .game-stage-day::before,
-  .game-stage-night::before,
-  .game-stage-voting::before {
+  .lobby-player-card__avatar::before {
     animation: none;
     transition: none;
   }
