@@ -253,7 +253,7 @@ export default function GameRoomPage() {
 
   if (!room) {
     return (
-      <div className="h-screen w-screen bg-background flex flex-col items-center justify-center font-serif-gothic demonic-bg">
+      <div className="h-screen w-screen bg-background flex flex-col items-center justify-center font-body-gothic demonic-bg">
         <div className="text-center space-y-4">
           <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
           <p className="text-primary tracking-widest uppercase text-sm animate-pulse">
@@ -352,17 +352,17 @@ export default function GameRoomPage() {
       return (
         <div className="bg-secondary border-b-2 border-primary px-6 py-4 flex flex-row justify-between items-center shrink-0 blood-glow-box">
           <div>
-            <h1 className="font-serif-gothic text-lg text-white font-bold">Nghi lễ kết thúc</h1>
-            <p className="text-xs text-primary/80 font-mono-gothic">Phòng: {room.roomId}</p>
+            <h1 className="font-body-gothic text-lg text-white font-bold">Nghi lễ kết thúc</h1>
+            <p className="text-xs text-primary/80 font-body-gothic">Phòng: {room.roomId}</p>
           </div>
           <div className="text-right flex items-center gap-4">
             <button 
               onClick={() => setIsAboutOpen(true)}
-              className="text-xs font-serif-gothic text-[#e9c349] hover:text-white cursor-pointer border border-outline-variant/30 hover:border-[#e9c349]/50 px-3 py-1 rounded transition-all bg-black/40"
+              className="text-xs font-body-gothic font-semibold text-[#e9c349] hover:text-white cursor-pointer border border-outline-variant/30 hover:border-[#e9c349]/50 px-3 py-1 rounded transition-all bg-black/40"
             >
               LUẬT CHƠI
             </button>
-            <span className="text-lg font-serif-gothic text-primary font-bold blood-glow">
+            <span className="text-lg font-body-gothic text-primary font-bold blood-glow">
               Phe {room.winner === 'WEREWOLF' ? 'Ma Sói' : 'Dân Làng'} chiến thắng!
             </span>
           </div>
@@ -612,7 +612,7 @@ export default function GameRoomPage() {
             <div className="mb-6 p-4 border-2 border-primary bg-indigo-950/20 text-primary flex justify-between items-center rounded animate-fade-in">
               <div className="flex items-center gap-2">
                 <span className="text-lg">🔮</span>
-                <p className="text-sm font-serif-gothic">
+                <p className="text-sm font-body-gothic">
                   Kết quả soi: <span className="font-bold text-white uppercase">{seerReveal.targetName}</span> là <span className={`font-bold uppercase ${seerReveal.role === 'WEREWOLF' ? 'text-red-500 blood-glow' : 'text-green-400'}`}>{seerReveal.role === 'WEREWOLF' ? 'MA SÓI' : 'DÂN LÀNG'}</span>!
                 </p>
               </div>
@@ -736,7 +736,7 @@ export default function GameRoomPage() {
                 <div className="mt-6 border-t border-outline-variant pt-6 flex justify-center">
                   <button 
                     onClick={handleLeaveRoom}
-                    className="bg-secondary text-white font-serif-gothic text-base py-3 px-8 border-2 border-secondary hover:bg-primary-container transition-colors blood-glow-box cursor-pointer"
+                    className="bg-secondary text-white font-body-gothic font-semibold text-base py-3 px-8 border-2 border-secondary hover:bg-primary-container transition-colors blood-glow-box cursor-pointer"
                   >
                     QUAY VỀ SẢNH CHỜ
                   </button>
@@ -806,7 +806,7 @@ export default function GameRoomPage() {
 
                   return (
                     <div key={index} className={`game-chat-bubble p-2.5 ${bubbleBg} max-w-[90%] ${msg.senderId === playerId ? 'ml-auto border-l-2 border-l-primary' : 'mr-auto border-l-2 border-l-secondary'}`}>
-                      <div className="text-[10px] font-mono-gothic text-primary/60 flex justify-between items-center gap-4 mb-0.5">
+                      <div className="text-[10px] font-body-gothic text-primary/60 flex justify-between items-center gap-4 mb-0.5">
                         <span className="font-bold">{roleTag}{msg.sender}</span>
                         <span>{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                       </div>

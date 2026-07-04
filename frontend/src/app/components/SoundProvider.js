@@ -243,7 +243,7 @@ export default function SoundProvider({ children }) {
           disabled={volume === 0}
           aria-label="Giảm âm lượng"
           title="Giảm âm lượng"
-          className="h-8 w-8 border border-outline-variant/40 text-primary hover:border-primary hover:bg-secondary/30 disabled:cursor-not-allowed disabled:opacity-35 font-mono-gothic text-base leading-none transition-colors"
+          className="h-8 w-8 border border-outline-variant/40 text-primary hover:border-primary hover:bg-secondary/30 disabled:cursor-not-allowed disabled:opacity-35 font-body-gothic text-base leading-none transition-colors"
         >
           -
         </button>
@@ -252,7 +252,7 @@ export default function SoundProvider({ children }) {
           onClick={toggleMute}
           aria-label={isMuted ? 'Bật âm thanh' : 'Tắt âm thanh'}
           title={isMuted ? 'Bật âm thanh' : 'Tắt âm thanh'}
-          className={`h-8 w-12 border font-mono-gothic text-[11px] leading-none transition-colors ${
+          className={`h-8 w-12 border font-body-gothic text-[11px] leading-none transition-colors ${
             isMuted || volume === 0
               ? 'border-red-900/70 bg-red-950/40 text-red-300'
               : 'border-primary/60 bg-secondary/20 text-primary hover:bg-secondary/40'
@@ -266,11 +266,11 @@ export default function SoundProvider({ children }) {
           disabled={volume === 1}
           aria-label="Tăng âm lượng"
           title="Tăng âm lượng"
-          className="h-8 w-8 border border-outline-variant/40 text-primary hover:border-primary hover:bg-secondary/30 disabled:cursor-not-allowed disabled:opacity-35 font-mono-gothic text-base leading-none transition-colors"
+          className="h-8 w-8 border border-outline-variant/40 text-primary hover:border-primary hover:bg-secondary/30 disabled:cursor-not-allowed disabled:opacity-35 font-body-gothic text-base leading-none transition-colors"
         >
           +
         </button>
-        <span className="min-w-10 text-center font-mono-gothic text-[10px] text-on-surface-variant">
+        <span className="min-w-10 text-center font-body-gothic text-[10px] text-on-surface-variant">
           {displayVolume}%
         </span>
       </div>

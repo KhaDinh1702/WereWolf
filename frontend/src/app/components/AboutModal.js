@@ -98,7 +98,7 @@ const InfoSection = ({ label, content, accentColor }) => (
   <div className="space-y-1.5">
     <div className="flex items-center gap-3">
       <span
-        className="text-[9px] tracking-[0.25em] uppercase font-bold font-serif-gothic"
+        className="text-[9px] tracking-[0.25em] uppercase font-bold font-body-gothic"
         style={{ color: accentColor }}
       >
         {label}
@@ -150,12 +150,12 @@ export default function AboutModal({ isOpen, onClose }) {
             </div>
             <div>
               <h2
-                className="text-sm uppercase tracking-[0.3em] font-bold font-serif-gothic"
+                className="text-sm uppercase tracking-[0.3em] font-bold font-body-gothic"
                 style={{ color: role.accentColor, textShadow: `0 0 20px ${role.accentGlow}` }}
               >
                 Nghi Thức Vai Trò
               </h2>
-              <p className="text-[9px] text-zinc-600 tracking-widest font-mono-gothic uppercase mt-0.5">
+              <p className="text-[9px] text-zinc-600 tracking-widest font-body-gothic uppercase mt-0.5">
                 Sổ tay của ngôi làng dưới trăng
               </p>
             </div>
@@ -190,19 +190,19 @@ export default function AboutModal({ isOpen, onClose }) {
                   }}
                 >
                   <span
-                    className="block text-[9px] font-mono-gothic tracking-widest mb-0.5"
+                    className="block text-[9px] font-body-gothic tracking-widest mb-0.5"
                     style={{ color: isActive ? r.accentColor : '#3a3a3a' }}
                   >
                     {r.numeral.padStart(2, '0')}
                   </span>
                   <span
-                    className="block text-xs uppercase tracking-wider font-bold font-serif-gothic transition-colors"
+                    className="block text-xs uppercase tracking-wider font-bold font-body-gothic transition-colors"
                     style={{ color: isActive ? '#e5e2e1' : '#5a5a5a' }}
                   >
                     {r.title}
                   </span>
                   <span
-                    className="block text-[9px] tracking-wide font-mono-gothic transition-colors mt-0.5"
+                    className="block text-[9px] tracking-wide font-body-gothic transition-colors mt-0.5"
                     style={{ color: isActive ? r.accentColor : '#3a3a3a' }}
                   >
                     {r.subtitle}
@@ -260,13 +260,13 @@ export default function AboutModal({ isOpen, onClose }) {
               {/* Bottom name badge */}
               <div className="absolute bottom-0 left-0 right-0 px-4 pb-4 z-10 flex flex-col items-center">
                 <p
-                  className="text-[9px] tracking-[0.3em] uppercase font-mono-gothic mb-0.5"
+                  className="text-[9px] tracking-[0.3em] uppercase font-body-gothic mb-0.5"
                   style={{ color: `${role.accentColor}cc` }}
                 >
                   {role.faction}
                 </p>
                 <p
-                  className="text-base font-serif-gothic font-black uppercase tracking-widest"
+                  className="text-base font-serif-gothic font-black uppercase tracking-widest leading-tight"
                   style={{
                     color: '#e5e2e1',
                     textShadow: `0 2px 12px rgba(0,0,0,1), 0 0 30px ${role.accentGlow}`,
@@ -287,7 +287,7 @@ export default function AboutModal({ isOpen, onClose }) {
               {/* Title block */}
               <div>
                 <h3
-                  className="text-2xl font-serif-gothic font-black uppercase tracking-widest leading-none"
+                  className="text-2xl font-serif-gothic font-black uppercase tracking-widest leading-tight"
                   style={{
                     color: '#e5e2e1',
                     textShadow: `0 0 30px ${role.accentGlow}`,
@@ -296,7 +296,7 @@ export default function AboutModal({ isOpen, onClose }) {
                   {role.title}
                 </h3>
                 <p
-                  className="text-xs font-mono-gothic tracking-widest mt-1"
+                  className="text-xs font-body-gothic tracking-widest mt-1"
                   style={{ color: role.accentColor }}
                 >
                   — {role.subtitle} · {role.faction} —
@@ -348,13 +348,13 @@ export default function AboutModal({ isOpen, onClose }) {
                   }}
                 >
                   <span
-                    className="text-[9px] uppercase tracking-[0.25em] font-mono-gothic font-bold"
+                    className="text-[9px] uppercase tracking-[0.25em] font-body-gothic font-bold"
                     style={{ color: role.accentColor }}
                   >
                     {role.faction}
                   </span>
                   <div className="w-1 h-1 rotate-45" style={{ background: role.accentColor }} />
-                  <span className="text-[9px] uppercase tracking-[0.25em] font-mono-gothic text-zinc-600">
+                  <span className="text-[9px] uppercase tracking-[0.25em] font-body-gothic text-zinc-600">
                     {role.subtitle}
                   </span>
                 </div>
