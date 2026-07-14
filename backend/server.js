@@ -465,7 +465,7 @@ io.on('connection', (socket) => {
       });
 
       // Check victory
-      const winner = checkVictory(room.players);
+      const winner = checkVictory(room.players, room.currentTurn);
       if (winner !== 'NONE') {
         room.status = 'FINISHED';
         room.winner = winner;
@@ -571,7 +571,7 @@ io.on('connection', (socket) => {
       });
 
       // Check victory
-      const winner = checkVictory(room.players);
+      const winner = checkVictory(room.players, room.currentTurn);
       if (winner !== 'NONE') {
         room.status = 'FINISHED';
         room.winner = winner;

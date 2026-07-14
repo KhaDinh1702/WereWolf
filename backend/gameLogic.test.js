@@ -112,25 +112,36 @@ describe('Game Logic Tests', () => {
         { playerId: '1', username: 'Sói', role: 'WEREWOLF', isAlive: false },
         { playerId: '2', username: 'Dân', role: 'VILLAGER', isAlive: true }
       ];
-      expect(checkVictory(players)).toBe('VILLAGER');
+      expect(checkVictory(players, 1)).toBe('VILLAGER');
     });
 
-    it('should return WEREWOLF if werewolves count >= villagers count', () => {
+    it('should return WEREWOLF if werewolves killed at least 2 villagers AND alive villagers <= alive wolves', () => {
+      const players = [
+        { playerId: '1', username: 'Sói', role: 'WEREWOLF', isAlive: true },
+        { playerId: '2', username: 'Dân 1', role: 'VILLAGER', isAlive: false },
+        { playerId: '3', username: 'Dân 2', role: 'VILLAGER', isAlive: false },
+        { playerId: '4', username: 'Dân 3', role: 'VILLAGER', isAlive: true }
+      ];
+      expect(checkVictory(players, 2)).toBe('WEREWOLF');
+    });
+
+    it('should return VILLAGER if reached turn 4 (after 3 nights) and werewolves did not win', () => {
       const players = [
         { playerId: '1', username: 'Sói', role: 'WEREWOLF', isAlive: true },
         { playerId: '2', username: 'Dân 1', role: 'VILLAGER', isAlive: true },
-        { playerId: '3', username: 'Dân 2', role: 'VILLAGER', isAlive: false }
+        { playerId: '3', username: 'Dân 2', role: 'VILLAGER', isAlive: true },
+        { playerId: '4', username: 'Dân 3', role: 'VILLAGER', isAlive: false }
       ];
-      expect(checkVictory(players)).toBe('WEREWOLF');
+      expect(checkVictory(players, 4)).toBe('VILLAGER');
     });
 
-    it('should return NONE if game is still active', () => {
+    it('should return NONE if game is still active within 3 nights', () => {
       const players = [
         { playerId: '1', username: 'Sói', role: 'WEREWOLF', isAlive: true },
         { playerId: '2', username: 'Dân 1', role: 'VILLAGER', isAlive: true },
         { playerId: '3', username: 'Dân 2', role: 'VILLAGER', isAlive: true }
       ];
-      expect(checkVictory(players)).toBe('NONE');
+      expect(checkVictory(players, 2)).toBe('NONE');
     });
   });
 

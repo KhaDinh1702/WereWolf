@@ -178,18 +178,37 @@ export const processVoting = (players) => {
 
 /**
  * Check if the game has ended and determine the winner.
+ * Custom Rule:
+ * - Werewolves win if:
+ *   (1) Dead villagers/town players >= 2 AND aliveVillagers <= aliveWolves
+ *   (2) OR aliveVillagers === 0
+ * - Villagers win if:
+ *   (1) Werewolf count === 0
+ *   (2) OR currentTurn >= 4 (Max 4 nights / After 3 nights if wolves haven't won, Villagers win!)
  * Returns 'WEREWOLF', 'VILLAGER', or 'NONE'
  */
-export const checkVictory = (players) => {
+export const checkVictory = (players, currentTurn = 1) => {
   const alivePlayers = players.filter(p => p.isAlive && p.role !== 'HOST');
-  const werewolfCount = alivePlayers.filter(p => p.role === 'WEREWOLF').length;
-  const villagerCount = alivePlayers.length - werewolfCount;
+  const aliveWolves = alivePlayers.filter(p => p.role === 'WEREWOLF').length;
+  const aliveVillagers = alivePlayers.filter(p => p.role !== 'WEREWOLF').length;
 
-  if (werewolfCount === 0) {
+  // Count dead villagers (non-host, non-werewolf players who are dead)
+  const deadVillagerCount = players.filter(p => p.role !== 'HOST' && p.role !== 'WEREWOLF' && !p.isAlive).length;
+
+  // 1. Villagers win if all werewolves are dead
+  if (aliveWolves === 0) {
     return 'VILLAGER';
   }
-  if (werewolfCount >= villagerCount) {
+
+  // 2. Werewolves win if killed at least 2 villagers AND alive villagers <= alive wolves (or 0 villagers)
+  if ((deadVillagerCount >= 2 && aliveVillagers <= aliveWolves) || aliveVillagers === 0) {
     return 'WEREWOLF';
   }
+
+  // 3. Max duration rule: Max 4 nights / After 3 nights (turn >= 4), if wolves haven't won, Villagers win!
+  if (currentTurn >= 4) {
+    return 'VILLAGER';
+  }
+
   return 'NONE';
 };
