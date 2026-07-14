@@ -6,10 +6,11 @@
  * Assign roles to players based on the player count.
  * Roles: WEREWOLF, SEER, BODYGUARD, VILLAGER
  */
-export const assignRoles = (players) => {
-  const count = players.length;
+export const assignRoles = (players, hostId = null) => {
+  const playingPlayers = hostId ? players.filter(p => p.playerId !== hostId) : players;
+  const count = playingPlayers.length;
   if (count < 4) {
-    throw new Error('Tối thiểu cần 4 người chơi để bắt đầu game.');
+    throw new Error('Tối thiểu cần 4 người chơi (không tính Chủ phòng) để bắt đầu game.');
   }
 
   // Determine role counts
@@ -40,15 +41,30 @@ export const assignRoles = (players) => {
   }
 
   // Assign to players
-  return players.map((player, idx) => ({
-    ...player,
-    role: rolesPool[idx],
-    isAlive: true,
-    hasVoted: false,
-    voteTarget: null,
-    actionTarget: null,
-    roleActionDone: false
-  }));
+  let poolIdx = 0;
+  return players.map((player) => {
+    if (hostId && player.playerId === hostId) {
+      return {
+        ...player,
+        role: 'HOST',
+        isAlive: false,
+        hasVoted: false,
+        voteTarget: null,
+        actionTarget: null,
+        roleActionDone: true
+      };
+    }
+    const role = rolesPool[poolIdx++];
+    return {
+      ...player,
+      role,
+      isAlive: true,
+      hasVoted: false,
+      voteTarget: null,
+      actionTarget: null,
+      roleActionDone: false
+    };
+  });
 };
 
 /**
@@ -165,7 +181,7 @@ export const processVoting = (players) => {
  * Returns 'WEREWOLF', 'VILLAGER', or 'NONE'
  */
 export const checkVictory = (players) => {
-  const alivePlayers = players.filter(p => p.isAlive);
+  const alivePlayers = players.filter(p => p.isAlive && p.role !== 'HOST');
   const werewolfCount = alivePlayers.filter(p => p.role === 'WEREWOLF').length;
   const villagerCount = alivePlayers.length - werewolfCount;
 

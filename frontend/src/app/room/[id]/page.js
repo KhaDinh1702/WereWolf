@@ -6,6 +6,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { useSocket } from '@/context/SocketContext';
 import AboutModal from '@/app/components/AboutModal';
 import PhaseTransitionCanvas from '@/app/components/PhaseTransitionCanvas';
+import HostBroadcastView from '@/app/components/HostBroadcastView';
+import NightQuizModal from '@/app/components/NightQuizModal';
 
 const getStoredPlayerId = () => {
   if (typeof window === 'undefined') return '';
@@ -126,6 +128,7 @@ export default function GameRoomPage() {
   const [activeTab, setActiveTab] = useState('chat'); // 'chat' | 'logs'
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [phaseOverlay, setPhaseOverlay] = useState(null);
+  const [showHostBroadcast, setShowHostBroadcast] = useState(false);
   
   const chatEndRef = useRef(null);
   const roomRef = useRef(null);
@@ -304,6 +307,15 @@ export default function GameRoomPage() {
     setChatInput('');
   };
 
+  const handleAnswerQuiz = (questionId, selectedKey) => {
+    socket.emit('submit_quiz_answer', {
+      roomId,
+      playerId,
+      questionId,
+      selectedKey
+    });
+  };
+
   const handleLeaveRoom = () => {
     if (socket && isConnected) {
       socket.emit('leave_room', { roomId, playerId }, (response) => {
@@ -332,6 +344,14 @@ export default function GameRoomPage() {
             </div>
           </div>
           <div className="lobby-header__actions">
+            {isHost && (
+              <button
+                onClick={() => setShowHostBroadcast(true)}
+                className="bg-red-950/80 hover:bg-red-900 border border-red-700/60 text-red-100 hover:text-white text-xs font-bold px-3.5 py-2 rounded shadow-md cursor-pointer transition-all flex items-center gap-1.5 uppercase tracking-wider blood-glow-box"
+              >
+                <span>MÀN HÌNH HOST VIEW</span>
+              </button>
+            )}
             <button 
               onClick={() => setIsAboutOpen(true)}
               className="lobby-rule-button"
@@ -407,6 +427,14 @@ export default function GameRoomPage() {
         </div>
         
         <div className="phase-header__actions">
+          {isHost && (
+            <button
+              onClick={() => setShowHostBroadcast(true)}
+              className="bg-red-950/80 hover:bg-red-900 border border-red-700/60 text-red-100 hover:text-white text-xs font-bold px-3.5 py-2 rounded shadow-md cursor-pointer transition-all flex items-center gap-1.5 uppercase tracking-wider blood-glow-box"
+            >
+              <span>MÀN HÌNH HOST VIEW</span>
+            </button>
+          )}
           <button 
             onClick={() => setIsAboutOpen(true)}
             className="phase-rule-button"
@@ -428,6 +456,13 @@ export default function GameRoomPage() {
   return (
     <div className={`bg-background text-on-background h-screen flex flex-col md:flex-row font-body-gothic textured-bg overflow-hidden ${room.status === 'LOBBY' ? 'room-shell-lobby' : ''} ${room.status === 'PLAYING' ? 'room-shell-playing' : ''} ${room.currentPhase === 'NIGHT' ? 'room-shell-night' : ''} ${room.currentPhase === 'DAY' ? 'room-shell-day' : ''} ${room.currentPhase === 'VOTING' ? 'room-shell-voting' : ''}`}>
       {phaseOverlay && <PhaseTransitionCanvas overlay={phaseOverlay} />}
+      {showHostBroadcast && (
+        <HostBroadcastView
+          room={room}
+          timeLeft={timeLeft}
+          onCloseHostView={() => setShowHostBroadcast(false)}
+        />
+      )}
       
       {/* Main Game Screen */}
       <main 
@@ -629,6 +664,15 @@ export default function GameRoomPage() {
           {room.status !== 'LOBBY' && (
             <div className="flex-grow flex flex-col">
               
+              {room.status === 'PLAYING' && room.currentPhase === 'NIGHT' && me.isAlive && (
+                <NightQuizModal
+                  nightQuestions={room.nightQuestions}
+                  quizAnswers={room.quizAnswers}
+                  currentTurn={room.currentTurn}
+                  onAnswer={handleAnswerQuiz}
+                />
+              )}
+
               <div className="night-player-grid grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 flex-grow content-start">
                 {room.players.map((player) => {
                   const isPlayerSelf = player.playerId === playerId;

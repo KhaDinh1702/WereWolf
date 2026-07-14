@@ -9,7 +9,7 @@ describe('Game Logic Tests', () => {
         { playerId: '2', username: 'B' },
         { playerId: '3', username: 'C' }
       ];
-      expect(() => assignRoles(players)).toThrow('Tối thiểu cần 4 người chơi để bắt đầu game.');
+      expect(() => assignRoles(players)).toThrow('Tối thiểu cần 4 người chơi (không tính Chủ phòng) để bắt đầu game.');
     });
 
     it('should assign roles correctly for 4 players', () => {
@@ -131,6 +131,23 @@ describe('Game Logic Tests', () => {
         { playerId: '3', username: 'Dân 2', role: 'VILLAGER', isAlive: true }
       ];
       expect(checkVictory(players)).toBe('NONE');
+    });
+  });
+
+  describe('Economic Questions Logic', () => {
+    it('should load 8 questions correctly and return 2 questions per turn', async () => {
+      const { ECONOMIC_QUESTIONS, getQuestionsForTurn } = await import('./questionsData.js');
+      expect(ECONOMIC_QUESTIONS).toHaveLength(8);
+
+      const night1Questions = getQuestionsForTurn(1);
+      expect(night1Questions).toHaveLength(2);
+      expect(night1Questions[0].id).toBe(1);
+      expect(night1Questions[1].id).toBe(2);
+
+      const night2Questions = getQuestionsForTurn(2);
+      expect(night2Questions).toHaveLength(2);
+      expect(night2Questions[0].id).toBe(3);
+      expect(night2Questions[1].id).toBe(4);
     });
   });
 });

@@ -18,7 +18,7 @@ const PlayerSchema = new mongoose.Schema({
   socketId: { type: String, default: '' },
   role: { 
     type: String, 
-    enum: ['WEREWOLF', 'SEER', 'BODYGUARD', 'VILLAGER', 'NONE'], 
+    enum: ['WEREWOLF', 'SEER', 'BODYGUARD', 'VILLAGER', 'HOST', 'NONE'], 
     default: 'NONE' 
   },
   isAlive: { type: Boolean, default: true },
@@ -55,6 +55,16 @@ const RoomSchema = new mongoose.Schema({
     default: 'NONE' 
   },
   currentTurn: { type: Number, default: 0 },
+  nightQuestions: { type: Array, default: [] },
+  quizAnswers: [
+    {
+      playerId: String,
+      questionId: Number,
+      selectedKey: String, // 'A', 'B', 'C', 'D'
+      isCorrect: Boolean,
+      turn: Number
+    }
+  ],
   winner: { 
     type: String, 
     enum: ['WEREWOLF', 'VILLAGER', 'NONE'], 

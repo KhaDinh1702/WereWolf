@@ -5,6 +5,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { connectDB, Room } from './db.js';
 import { assignRoles, processNightActions, processVoting, checkVictory } from './gameLogic.js';
+import { getQuestionsForTurn } from './questionsData.js';
 
 dotenv.config();
 
@@ -30,6 +31,7 @@ const ROLE_LABELS = {
   SEER: 'Tiên Tri',
   BODYGUARD: 'Bảo Vệ',
   VILLAGER: 'Dân Làng',
+  HOST: 'Quản Trò',
   NONE: 'Chưa rõ'
 };
 
@@ -47,6 +49,25 @@ const sanitizeRoomState = (room, playerId) => {
   const viewer = roomObj.players.find(p => p.playerId === playerId);
   
   if (!viewer) return roomObj; // Default fallback
+
+  // Compute quiz statistics for presentation view
+  if (roomObj.nightQuestions && roomObj.nightQuestions.length > 0) {
+    const currentAnswers = (roomObj.quizAnswers || []).filter(a => a.turn === roomObj.currentTurn);
+    roomObj.quizStats = roomObj.nightQuestions.map(q => {
+      const answersForQ = currentAnswers.filter(a => a.questionId === q.id);
+      const counts = { A: 0, B: 0, C: 0, D: 0 };
+      answersForQ.forEach(a => {
+        if (counts[a.selectedKey] !== undefined) {
+          counts[a.selectedKey]++;
+        }
+      });
+      return {
+        questionId: q.id,
+        totalAnswers: answersForQ.length,
+        counts
+      };
+    });
+  }
 
   // If lobby or finished, reveal all roles
   if (roomObj.status === 'LOBBY' || roomObj.status === 'FINISHED') {
@@ -273,12 +294,13 @@ io.on('connection', (socket) => {
         return socket.emit('error_message', 'Chỉ có chủ phòng mới khởi động được game.');
       }
 
-      if (room.players.length < 4) {
-        return socket.emit('error_message', 'Tối thiểu cần 4 người chơi để bắt đầu game.');
+      const nonHostCount = room.players.filter(p => p.playerId !== room.hostId).length;
+      if (nonHostCount < 4) {
+        return socket.emit('error_message', 'Tối thiểu cần 4 người chơi (không tính Chủ phòng) để bắt đầu game.');
       }
 
       // Assign roles
-      const playersWithRoles = assignRoles(room.players.map(p => p.toObject()));
+      const playersWithRoles = assignRoles(room.players.map(p => p.toObject()), room.hostId);
       room.players = playersWithRoles;
       room.status = 'PLAYING';
       room.currentPhase = 'NIGHT';
@@ -309,6 +331,7 @@ io.on('connection', (socket) => {
       if (!room) return;
 
       room.currentPhase = 'NIGHT';
+      room.nightQuestions = getQuestionsForTurn(room.currentTurn || 1);
       // Reset night actions
       room.players.forEach(p => {
         p.actionTarget = null;
@@ -326,6 +349,45 @@ io.on('connection', (socket) => {
       console.error('Trigger night phase error:', error);
     }
   };
+
+  // Submit quiz answer during night
+  socket.on('submit_quiz_answer', async ({ roomId, playerId, questionId, selectedKey }) => {
+    try {
+      const room = await Room.findOne({ roomId });
+      if (!room || room.currentPhase !== 'NIGHT') return;
+
+      const player = room.players.find(p => p.playerId === playerId);
+      if (!player || !player.isAlive) return;
+
+      const question = (room.nightQuestions || []).find(q => q.id === questionId);
+      if (!question) return;
+
+      const existingAnswerIdx = (room.quizAnswers || []).findIndex(
+        a => a.playerId === playerId && a.questionId === questionId && a.turn === room.currentTurn
+      );
+
+      const isCorrect = question.correctAnswer === selectedKey;
+
+      if (existingAnswerIdx !== -1) {
+        room.quizAnswers[existingAnswerIdx].selectedKey = selectedKey;
+        room.quizAnswers[existingAnswerIdx].isCorrect = isCorrect;
+      } else {
+        if (!room.quizAnswers) room.quizAnswers = [];
+        room.quizAnswers.push({
+          playerId,
+          questionId,
+          selectedKey,
+          isCorrect,
+          turn: room.currentTurn
+        });
+      }
+
+      await room.save();
+      broadcastRoomState(roomId);
+    } catch (error) {
+      console.error('Submit quiz answer error:', error);
+    }
+  });
 
   // 4. Night Actions
   socket.on('night_action', async ({ roomId, playerId, targetPlayerId }) => {
