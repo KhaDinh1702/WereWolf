@@ -12,7 +12,8 @@ const OPTION_THEMES = [
 
 export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onAdvancePhase }) {
   const [selectedQuestionIndex, setSelectedQuestionIndex] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState({}); // { [questionId]: 'A' | 'B' | 'C' | 'D' }
+  const [wrongOptions, setWrongOptions] = useState({}); // { [qId]: ['A', 'C'] }
+  const [correctAnswersFound, setCorrectAnswersFound] = useState({}); // { [qId]: true }
   const [leftTab, setLeftTab] = useState('survival'); // 'survival' | 'logs'
 
   if (!room) return null;
@@ -23,10 +24,7 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
   const logs = room.logs || [];
   
   const nightQuestions = room.nightQuestions || [];
-  const quizStats = room.quizStats || [];
-  
   const currentQuestion = nightQuestions[selectedQuestionIndex] || nightQuestions[0];
-  const currentStats = quizStats[selectedQuestionIndex] || { totalAnswers: 0, counts: { A: 0, B: 0, C: 0, D: 0 } };
 
   const isNight = room.currentPhase === 'NIGHT';
   const isDayOrVote = room.currentPhase === 'DAY' || room.currentPhase === 'VOTING';
@@ -35,10 +33,25 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
 
   const handleOptionClick = (key) => {
     if (!currentQuestion) return;
-    setSelectedAnswers(prev => ({
-      ...prev,
-      [currentQuestion.id]: prev[currentQuestion.id] === key ? null : key
-    }));
+    const qId = currentQuestion.id;
+
+    // If already answered correctly or option already locked, do nothing
+    if (correctAnswersFound[qId] || (wrongOptions[qId] || []).includes(key)) return;
+
+    if (key === currentQuestion.correctAnswer) {
+      setCorrectAnswersFound(prev => ({ ...prev, [qId]: true }));
+      // Auto switch to question 2 after short delay if available
+      if (selectedQuestionIndex + 1 < nightQuestions.length) {
+        setTimeout(() => {
+          setSelectedQuestionIndex(prev => prev + 1);
+        }, 1200);
+      }
+    } else {
+      setWrongOptions(prev => ({
+        ...prev,
+        [qId]: [...(prev[qId] || []), key]
+      }));
+    }
   };
 
   return (
@@ -261,6 +274,26 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
                 </p>
 
                 <div className="mt-3 flex items-center justify-center gap-3 flex-wrap">
+                  {correctAnswersFound[currentQuestion.id] ? (
+                    <div className="flex items-center gap-3 flex-wrap justify-center">
+                      <span className="text-emerald-400 font-extrabold text-sm animate-pulse">
+                        🎉 CHÍNH XÁC! ĐÃ TÌM THẤY ĐÁP ÁN ĐÚNG!
+                      </span>
+                      {selectedQuestionIndex + 1 < nightQuestions.length && (
+                        <button
+                          onClick={() => setSelectedQuestionIndex(selectedQuestionIndex + 1)}
+                          className="px-4 py-1.5 rounded-full bg-[#e9c349] text-black font-extrabold text-xs shadow-lg hover:scale-105 cursor-pointer transition-all border border-yellow-200"
+                        >
+                          SANG CÂU HỎI 2 ➡️
+                        </button>
+                      )}
+                    </div>
+                  ) : (wrongOptions[currentQuestion.id] || []).length > 0 ? (
+                    <span className="text-red-400 font-bold text-xs bg-red-950/90 border border-red-800/60 px-3 py-1 rounded-full">
+                      ❌ Đáp án vừa chọn chưa đúng (Đã khóa). Hãy chọn lại!
+                    </span>
+                  ) : null}
+
                   {isNight && onAdvancePhase && (
                     <button
                       onClick={onAdvancePhase}
@@ -272,26 +305,29 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
                 </div>
               </div>
 
-              {/* Options Grid (Host directly clicks options A, B, C, D) */}
+              {/* Options Grid (Host directly clicks options: wrong locks, correct reveals) */}
               <div className="grid grid-cols-2 gap-4 my-4">
                 {currentQuestion.options.map((opt, i) => {
                   const theme = OPTION_THEMES[i % OPTION_THEMES.length];
-                  const isSelected = selectedAnswers[currentQuestion.id] === theme.key;
-                  const isCorrect = isSelected && currentQuestion.correctAnswer === theme.key;
+                  const qId = currentQuestion.id;
+                  const isWrong = (wrongOptions[qId] || []).includes(theme.key);
+                  const isCorrect = correctAnswersFound[qId] && currentQuestion.correctAnswer === theme.key;
 
                   return (
                     <div
                       key={opt.key}
                       onClick={() => handleOptionClick(theme.key)}
-                      className={`relative p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 shadow-xl flex flex-col justify-between overflow-hidden hover:scale-[1.02] active:scale-[0.98] ${
-                        theme.bg
-                      } ${theme.border} ${
-                        isSelected ? 'ring-4 ring-[#e9c349] scale-[1.02] shadow-2xl' : ''
+                      className={`relative p-5 rounded-2xl border-2 transition-all duration-300 shadow-xl flex flex-col justify-between overflow-hidden ${
+                        isWrong
+                          ? 'bg-zinc-950/90 border-red-950/80 opacity-40 grayscale cursor-not-allowed'
+                          : isCorrect
+                            ? 'bg-gradient-to-r from-emerald-950 via-emerald-900 to-emerald-950 border-emerald-400 ring-4 ring-yellow-400 scale-[1.02] shadow-2xl'
+                            : `${theme.bg} ${theme.border} cursor-pointer hover:scale-[1.02] active:scale-[0.98]`
                       }`}
                     >
                       <div className="flex items-start justify-between relative z-10">
                         <div className="flex items-center gap-3">
-                          <span className={`w-9 h-9 rounded-xl ${theme.labelBg} flex items-center justify-center font-black text-lg text-white shadow-md border border-white/20`}>
+                          <span className={`w-9 h-9 rounded-xl ${isCorrect ? 'bg-emerald-800 border-emerald-400' : theme.labelBg} flex items-center justify-center font-black text-lg text-white shadow-md border border-white/20`}>
                             {theme.shape}
                           </span>
                           <span className="font-extrabold text-lg text-white">
@@ -300,17 +336,19 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
                         </div>
                       </div>
 
-                      <p className="font-bold text-base md:text-lg text-white mt-3 relative z-10 leading-snug">
+                      <p className={`font-bold text-base md:text-lg mt-3 relative z-10 leading-snug ${isWrong ? 'line-through text-zinc-500' : 'text-white'}`}>
                         {opt.text}
                       </p>
 
-                      {isSelected && (
-                        <div className={`absolute top-3 right-3 px-3 py-1 rounded-full font-black text-xs border uppercase tracking-wider z-20 shadow-lg ${
-                          isCorrect 
-                            ? 'bg-yellow-400 text-slate-950 border-yellow-200 animate-bounce' 
-                            : 'bg-amber-500 text-slate-950 border-amber-300'
-                        }`}>
-                          {isCorrect ? 'ĐÁP ÁN ĐÚNG ✅' : 'ĐÁP ÁN ĐÃ CHỌN 🎯'}
+                      {isWrong && (
+                        <div className="absolute top-3 right-3 bg-red-950 text-red-400 border border-red-800/80 font-black text-[11px] px-3 py-1 rounded-full uppercase tracking-wider z-20 shadow-md">
+                          🔒 CHƯA ĐÚNG ❌
+                        </div>
+                      )}
+
+                      {isCorrect && (
+                        <div className="absolute top-3 right-3 bg-yellow-400 text-slate-950 border border-yellow-200 font-black text-xs px-3 py-1 rounded-full uppercase tracking-wider animate-bounce z-20 shadow-lg">
+                          🎉 CHÍNH XÁC! ✅
                         </div>
                       )}
                     </div>
