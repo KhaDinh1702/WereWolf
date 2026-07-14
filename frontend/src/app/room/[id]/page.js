@@ -281,6 +281,7 @@ export default function GameRoomPage() {
 
   const handleStartGame = () => {
     emitSoundEffect('start');
+    setShowHostBroadcast(true);
     socket.emit('start_game', { roomId, playerId });
   };
 
@@ -307,13 +308,8 @@ export default function GameRoomPage() {
     setChatInput('');
   };
 
-  const handleAnswerQuiz = (questionId, selectedKey) => {
-    socket.emit('submit_quiz_answer', {
-      roomId,
-      playerId,
-      questionId,
-      selectedKey
-    });
+  const handleHostAdvancePhase = () => {
+    socket.emit('host_advance_phase', { roomId, playerId });
   };
 
   const handleLeaveRoom = () => {
@@ -328,6 +324,13 @@ export default function GameRoomPage() {
       router.push('/');
     }
   };
+
+  // Auto-open Host View for Host when game status is active
+  useEffect(() => {
+    if (isHost && room && room.status !== 'LOBBY') {
+      setShowHostBroadcast(true);
+    }
+  }, [isHost, room?.status]);
 
   // Helper rendering for current phase banner
   const renderPhaseBanner = () => {
@@ -356,72 +359,25 @@ export default function GameRoomPage() {
               onClick={() => setIsAboutOpen(true)}
               className="lobby-rule-button"
             >
-              <Image src="/images/rule-book.png" alt="" width={22} height={22} className="lobby-action-icon" />
-              <span>LUẬT CHƠI</span>
+              <Image src="/images/rule-book.png" alt="" width={20} height={20} className="lobby-action-icon" />
+              <span>LUẬT NGHI LỄ</span>
             </button>
-            <div className="lobby-companion-count">
-              <Image src="/images/wait-for-players.png" alt="" width={22} height={22} className="lobby-action-icon" />
-              <span>Chờ đồng bọn ({room.players.length})</span>
-            </div>
           </div>
         </div>
       );
     }
 
-    if (room.status === 'FINISHED') {
-      return (
-        <div className="bg-secondary border-b-2 border-primary px-6 py-4 flex flex-row justify-between items-center shrink-0 blood-glow-box">
-          <div>
-            <h1 className="font-body-gothic text-lg text-white font-bold">Nghi lễ kết thúc</h1>
-            <p className="text-xs text-primary/80 font-body-gothic">Phòng: {room.roomId}</p>
-          </div>
-          <div className="text-right flex items-center gap-4">
-            <button 
-              onClick={() => setIsAboutOpen(true)}
-              className="text-xs font-body-gothic font-semibold text-[#e9c349] hover:text-white cursor-pointer border border-outline-variant/30 hover:border-[#e9c349]/50 px-3 py-1 rounded transition-all bg-black/40"
-            >
-              LUẬT CHƠI
-            </button>
-            <span className="text-lg font-body-gothic text-primary font-bold blood-glow">
-              Phe {room.winner === 'WEREWOLF' ? 'Ma Sói' : 'Dân Làng'} chiến thắng!
-            </span>
-          </div>
-        </div>
-      );
-    }
-
-    // PLAYING State
-    let bannerTitle = '';
-    let phaseTone = 'night';
-    let bannerDesc = '';
-
-    if (room.currentPhase === 'NIGHT') {
-      bannerTitle = 'BAN ĐÊM - SÓI THỨC GIẤC';
-      phaseTone = 'night';
-      bannerDesc = 'Mọi người nhắm mắt, các vai trò đặc biệt thực hiện kỹ năng trong bóng tối.';
-    } else if (room.currentPhase === 'DAY') {
-      bannerTitle = 'BAN NGÀY - THẢO LUẬN';
-      phaseTone = 'day';
-      bannerDesc = 'Thảo luận công khai tìm kiếm kẻ nghi vấn. Trò chuyện tự do.';
-    } else if (room.currentPhase === 'VOTING') {
-      bannerTitle = 'BIỂU QUYẾT TREO CỔ';
-      phaseTone = 'vote';
-      bannerDesc = 'Đến giờ phán xét. Hãy bỏ phiếu treo cổ kẻ ông chủ nghi ngờ.';
-    }
-
-    const phaseLogoSrc = phaseTone === 'night' ? '/images/night-logo.png' : '/images/day-logo.png';
+    const bannerTitle = room.status === 'FINISHED' ? 'KẾT THÚC NGHI LỄ' : room.currentPhase === 'NIGHT' ? 'BAN ĐÊM' : room.currentPhase === 'DAY' ? 'BAN NGÀY' : 'BIỂU QUYẾT';
+    const bannerDesc = room.status === 'FINISHED' ? 'Kết quả cuộc săn đã ngã ngũ' : room.currentPhase === 'NIGHT' ? 'Đêm tối tịch mịch - Các vai trò bắt đầu nghi thức' : room.currentPhase === 'DAY' ? 'Bình minh rực rỡ - Hãy thảo luận về kẻ tình nghi' : 'Giờ phán xét - Bỏ phiếu treo cổ kẻ tình nghi';
 
     return (
-      <div className={`phase-header phase-header-${phaseTone}`}>
-        <div className="phase-header__identity">
-          <span className={`phase-header__icon phase-header__icon-${phaseTone}`} aria-hidden="true">
-            <Image src={phaseLogoSrc} alt="" width={58} height={58} className="phase-header__icon-image" priority />
-          </span>
+      <div className="phase-header">
+        <div className="phase-header__title">
+          <div className="phase-header__icon font-serif-gothic text-[#e9c349]">
+            <Image src={room.currentPhase === 'NIGHT' ? '/images/night-logo.png' : '/images/day-logo.png'} alt="" width={32} height={32} />
+          </div>
           <div>
-            <h1>
-              {bannerTitle}
-              <span>(Vòng {room.currentTurn})</span>
-            </h1>
+            <h2>{bannerTitle} (ĐÊM {room.currentTurn || 1})</h2>
             <p>{bannerDesc}</p>
           </div>
         </div>
@@ -439,8 +395,8 @@ export default function GameRoomPage() {
             onClick={() => setIsAboutOpen(true)}
             className="phase-rule-button"
           >
-            <Image src="/images/rule-book.png" alt="" width={22} height={22} className="phase-rule-button__icon" />
-            <span>LUẬT CHƠI</span>
+            <Image src="/images/rule-book.png" alt="" width={20} height={20} className="phase-rule-icon" />
+            <span>LUẬT VAI TRÒ</span>
           </button>
           <div className="phase-timer">
             <span>Thời gian còn lại</span>
@@ -505,9 +461,8 @@ export default function GameRoomPage() {
               </div>
 
               <button
-                type="button"
                 onClick={() => {
-                  if (!showRole) emitSoundEffect('reveal');
+                  emitSoundEffect(showRole ? 'seal' : 'whisper');
                   setShowRole(!showRole);
                 }}
                 className={`role-card-showcase ${showRole ? 'is-revealed' : ''}`}
@@ -535,10 +490,9 @@ export default function GameRoomPage() {
                         alt={`Lá bài ${myRoleMeta.title}`}
                         width={1024}
                         height={1536}
-                        className="role-card-showcase__image"
-                        priority={room.currentPhase === 'NIGHT'}
+                        className="role-card-showcase__full-art"
                       />
-                      <span className="role-card-showcase__role-logo" aria-hidden="true">
+                      <span className="role-card-showcase__logo-badge">
                         <Image
                           src={myRoleMeta.logoSmall || ANONYMOUS_ROLE_LOGO}
                           alt=""
@@ -577,7 +531,7 @@ export default function GameRoomPage() {
               <section className="lobby-centerpiece" aria-label="Danh sách người chơi trong sảnh chờ">
                 <div className="lobby-invocation">
                   <span />
-                  <p>Tập hợp nghi lễ cần tối thiểu 4 người chơi để bắt đầu.</p>
+                  <p>Tập hợp nghi lễ cần tối thiểu 5 người chơi để bắt đầu.</p>
                   <span />
                 </div>
 
@@ -585,14 +539,14 @@ export default function GameRoomPage() {
                   {room.players.map((player) => {
                     const hostCard = player.playerId === room.hostId;
                     return (
-                      <article
+                      <div
                         key={player.playerId}
                         className={`lobby-player-card ${hostCard ? 'is-host' : ''}`}
                       >
-                        <span className="lobby-player-card__corner lobby-player-card__corner-tl" />
-                        <span className="lobby-player-card__corner lobby-player-card__corner-tr" />
-                        <span className="lobby-player-card__corner lobby-player-card__corner-bl" />
-                        <span className="lobby-player-card__corner lobby-player-card__corner-br" />
+                        <span className="lobby-player-card__corner lobby-player-card__corner-tl" aria-hidden="true" />
+                        <span className="lobby-player-card__corner lobby-player-card__corner-tr" aria-hidden="true" />
+                        <span className="lobby-player-card__corner lobby-player-card__corner-bl" aria-hidden="true" />
+                        <span className="lobby-player-card__corner lobby-player-card__corner-br" aria-hidden="true" />
 
                         {hostCard && (
                           <div className="lobby-player-card__ribbon">Chủ phòng</div>
@@ -603,61 +557,46 @@ export default function GameRoomPage() {
                         </div>
 
                         <div className="lobby-player-card__body">
-                          <h3 title={player.username}>{player.username}</h3>
+                          <h3>{player.username}</h3>
                           <p>{hostCard ? 'Vị trí: Chủ tọa' : 'Vị trí: Đồng lòng'}</p>
                         </div>
 
                         <div className="lobby-player-card__crest" aria-hidden="true" />
-                      </article>
+                      </div>
                     );
                   })}
-
                 </div>
               </section>
 
               <div className="lobby-bottom-bar">
-                <button 
+                <button
                   onClick={handleLeaveRoom}
-                  className="lobby-leave-button"
+                  className="lobby-leave-button flex items-center justify-center gap-2"
                 >
-                  <span>Rời phòng</span>
+                  <span>THOÁT PHÒNG</span>
                 </button>
 
-                <div className="lobby-waiting-status">
+                <div className="lobby-waiting-status rounded">
                   <span className="lobby-waiting-status__eye" aria-hidden="true" />
-                  <span>Đang chờ chủ phòng khởi động nghi lễ...</span>
+                  <span>
+                    {room.players.length < 5
+                      ? `Cần thêm ${5 - room.players.length} người chơi...`
+                      : 'Đã đủ điều kiện khai mạc nghi lễ!'}
+                  </span>
                 </div>
 
                 {isHost ? (
-                  <button 
+                  <button
                     onClick={handleStartGame}
-                    disabled={room.players.length < 4}
+                    disabled={room.players.length < 5}
                     className="lobby-start-button"
                   >
-                    <span>Bắt đầu nghi thức</span>
+                    <span>KHAI MẠC NGHI LỄ</span>
                   </button>
                 ) : (
-                  <span className="lobby-bottom-bar__spacer" aria-hidden="true" />
+                  <div className="lobby-bottom-bar__spacer" />
                 )}
               </div>
-            </div>
-          )}
-
-          {/* Seer Reveal Alert Modal */}
-          {seerReveal && (
-            <div className="mb-6 p-4 border-2 border-primary bg-indigo-950/20 text-primary flex justify-between items-center rounded animate-fade-in">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">🔮</span>
-                <p className="text-sm font-body-gothic">
-                  Kết quả soi: <span className="font-bold text-white uppercase">{seerReveal.targetName}</span> là <span className={`font-bold uppercase ${seerReveal.role === 'WEREWOLF' ? 'text-red-500 blood-glow' : 'text-green-400'}`}>{seerReveal.role === 'WEREWOLF' ? 'MA SÓI' : 'DÂN LÀNG'}</span>!
-                </p>
-              </div>
-              <button 
-                onClick={() => setSeerReveal(null)}
-                className="text-xs underline hover:text-white cursor-pointer"
-              >
-                ĐÃ RÕ
-              </button>
             </div>
           )}
 
@@ -674,79 +613,70 @@ export default function GameRoomPage() {
                   
                   if (me.isAlive && isAlive) {
                     if (room.currentPhase === 'NIGHT' && !me.roleActionDone) {
-                      if (!isPlayerSelf && me.role === 'WEREWOLF' && player.role !== 'WEREWOLF') {
+                      if (me.role === 'WEREWOLF' && player.role !== 'WEREWOLF' && !isPlayerSelf) {
                         actionBtn = (
-                          <button 
+                          <button
                             onClick={() => handleNightAction(player.playerId)}
-                            className="night-action-button night-action-button-wolf"
+                            className="w-full mt-2 py-1.5 px-2 bg-red-950/80 hover:bg-red-900 border border-red-700/60 text-red-100 hover:text-white rounded text-xs font-bold transition-all blood-glow-box cursor-pointer"
                           >
-                            CẮN
+                            HẠ SÁT 🐺
+                          </button>
+                        );
+                      } else if (me.role === 'SEER' && !isPlayerSelf) {
+                        actionBtn = (
+                          <button
+                            onClick={() => handleNightAction(player.playerId)}
+                            className="w-full mt-2 py-1.5 px-2 bg-purple-950/80 hover:bg-purple-900 border border-purple-700/60 text-purple-100 hover:text-white rounded text-xs font-bold transition-all shadow-md cursor-pointer"
+                          >
+                            SOI BÀI 🔮
                           </button>
                         );
                       } else if (me.role === 'BODYGUARD') {
                         actionBtn = (
-                          <button 
+                          <button
                             onClick={() => handleNightAction(player.playerId)}
-                            className="night-action-button night-action-button-guard"
+                            className="w-full mt-2 py-1.5 px-2 bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-700/60 text-cyan-100 hover:text-white rounded text-xs font-bold transition-all shadow-md cursor-pointer"
                           >
-                            BẢO VỆ
-                          </button>
-                        );
-                      } else if (!isPlayerSelf && me.role === 'SEER') {
-                        actionBtn = (
-                          <button 
-                            onClick={() => handleNightAction(player.playerId)}
-                            className="night-action-button night-action-button-seer"
-                          >
-                            SOI
+                            BẢO VỆ 🛡️
                           </button>
                         );
                       }
-                    } else if (room.currentPhase === 'VOTING' && !me.hasVoted && !isPlayerSelf) {
+                    } else if (room.currentPhase === 'VOTING' && !me.hasVoted) {
                       actionBtn = (
-                        <button 
+                        <button
                           onClick={() => handleCastVote(player.playerId)}
-                          className="night-action-button night-action-button-vote"
+                          className="w-full mt-2 py-1.5 px-2 bg-amber-950/80 hover:bg-amber-900 border border-amber-700/60 text-amber-100 hover:text-white rounded text-xs font-bold transition-all shadow-md cursor-pointer"
                         >
-                          BỎ PHIẾU
+                          BỎ PHIẾU ⚖️
                         </button>
                       );
                     }
                   }
 
-                  const hasConcreteRole = player.role && player.role !== 'NONE';
-                  const showActualRole = hasConcreteRole && (
-                    room.status === 'FINISHED' ||
-                    !isAlive ||
-                    (isPlayerSelf && showRole)
-                  );
-                  const playerRoleMeta = showActualRole ? getRoleCardMeta(player.role) : ROLE_CARD_META.NONE;
-                  const avatarClass = showActualRole ? 'is-known' : 'is-anonymous';
-
                   return (
-                    <div 
-                      key={player.playerId} 
-                      className={`night-player-card ${!isAlive ? 'is-dead' : ''} ${isPlayerSelf ? 'is-self' : ''}`}
-                      data-role={player.role}
+                    <div
+                      key={player.playerId}
+                      className={`night-player-card ${isAlive ? 'is-alive' : 'is-dead'} ${isPlayerSelf ? 'is-self' : ''}`}
                     >
-                      <span className={`night-player-card__status-dot ${isAlive ? 'is-online' : 'is-offline'}`} aria-label={isAlive ? 'Còn sống' : 'Đã chết'} />
+                      <div className="night-player-card__avatar font-serif-gothic">
+                        {player.username.charAt(0).toUpperCase()}
+                      </div>
 
-                      <div className="night-player-card__inner">
-                        <div className={`night-player-card__avatar ${avatarClass}`} aria-hidden="true">
-                          <Image
-                            src={playerRoleMeta.logoSmall || ANONYMOUS_ROLE_LOGO}
-                            alt=""
-                            width={64}
-                            height={64}
-                            className="night-player-card__avatar-image"
-                          />
-                        </div>
+                      <div className="night-player-card__info text-center flex-grow flex flex-col justify-center">
+                        <span className="night-player-card__name font-bold text-sm block">
+                          {player.username} {isPlayerSelf && '(Bạn)'}
+                        </span>
                         
-                        <div className="night-player-card__name" title={player.username}>
-                          {player.username} {isPlayerSelf && '(TÔI)'}
+                        <div className="night-player-card__status mt-1">
+                          {isAlive ? (
+                            <span className="night-player-card__life-badge is-alive">CÒN SỐNG</span>
+                          ) : (
+                            <span className="night-player-card__life-badge is-dead">ĐÃ CHẾT</span>
+                          )}
                         </div>
 
-                        {showActualRole && (
+                        {/* Show revealed roles if finished or wolf pair or seer result */}
+                        {(room.status === 'FINISHED' || (me.role === 'WEREWOLF' && player.role === 'WEREWOLF')) && (
                           <div className={`night-player-card__role ${player.role === 'WEREWOLF' ? 'is-wolf-role' : ''}`}>
                             {getRoleLabel(player.role)}
                           </div>
@@ -783,129 +713,89 @@ export default function GameRoomPage() {
         </div>
       </main>
 
-      {/* Side Panel (Chat & Logs) */}
+      {/* Side Panel (Exclusive Chat for Players) */}
       <aside className="game-chat-sidebar w-full md:w-[23vw] md:min-w-[360px] md:max-w-[460px] flex flex-col h-[40%] md:h-full shrink-0 z-40 relative">
         
-        {/* Tabs switcher */}
-        <div className="game-chat-sidebar__top">
-          <div className="game-chat-sidebar__tabs">
-          <button 
-            onClick={() => setActiveTab('chat')}
-            className={`game-chat-sidebar__tab ${
-              activeTab === 'chat'
-                ? 'is-active'
-                : ''
-            }`}
-          >
-            Trò chuyện
-          </button>
-          <button 
-            onClick={() => setActiveTab('logs')}
-            className={`game-chat-sidebar__tab ${
-              activeTab === 'logs'
-                ? 'is-active'
-                : ''
-            }`}
-          >
-            Nhật ký
-          </button>
-          </div>
+        {/* Sidebar Header */}
+        <div className="game-chat-sidebar__top border-b border-red-900/50 pb-3 mb-2 px-4 pt-3 flex items-center justify-between">
+          <h3 className="font-extrabold text-sm text-[#e9c349] uppercase tracking-wider blood-glow">
+            💬 TRÒ CHUYỆN NGHI LỄ
+          </h3>
+          <span className="text-[10px] text-red-300/70 font-bold bg-red-950/80 px-2 py-0.5 rounded border border-red-800/40">
+            TRỰC TIẾP
+          </span>
         </div>
 
-        {/* Tab Content: Chat */}
-        {activeTab === 'chat' && (
-          <div className="flex-grow flex flex-col overflow-hidden">
-            {/* Messages box */}
-            <div className="game-chat-messages flex-grow overflow-y-auto space-y-3 text-sm">
-              {messages.length === 0 ? (
-                <div className="game-chat-empty">
-                  <div className="game-chat-empty__watermark" aria-hidden="true" />
-                  <p>Không có tin nhắn nào.</p>
-                  <span>Nghi thức đang diễn ra trong tĩnh lặng.</span>
-                </div>
-              ) : (
-                messages.map((msg, index) => {
-                  let bubbleBg = 'bg-surface-container';
-                  let textColor = 'text-on-background';
-                  let roleTag = '';
-
-                  if (msg.isWolfChat) {
-                    bubbleBg = 'bg-red-950/20 border border-red-900/40';
-                    textColor = 'text-red-300';
-                    roleTag = '[SÓI] ';
-                  } else if (msg.isDeadChat) {
-                    bubbleBg = 'bg-zinc-900/60 border border-zinc-800';
-                    textColor = 'text-zinc-400';
-                    roleTag = '[HỒN MA] ';
-                  }
-
-                  return (
-                    <div key={index} className={`game-chat-bubble p-2.5 ${bubbleBg} max-w-[90%] ${msg.senderId === playerId ? 'ml-auto border-l-2 border-l-primary' : 'mr-auto border-l-2 border-l-secondary'}`}>
-                      <div className="text-[10px] font-body-gothic text-primary/60 flex justify-between items-center gap-4 mb-0.5">
-                        <span className="font-bold">{roleTag}{msg.sender}</span>
-                        <span>{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                      </div>
-                      <p className={`break-words ${textColor}`}>{msg.text}</p>
-                    </div>
-                  );
-                })
-              )}
-              <div ref={chatEndRef} />
-            </div>
-
-            {/* Chat Send Form */}
-            {room.status !== 'FINISHED' && (
-              <form onSubmit={handleSendMessage} className="game-chat-form flex gap-2">
-                <input 
-                  type="text" 
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  disabled={
-                    room.status === 'PLAYING' && 
-                    ((room.currentPhase === 'NIGHT' && me.role !== 'WEREWOLF') || !me.isAlive) && 
-                    me.isAlive // If I'm dead, I can chat in dead-chat. If night and not wolf, cannot chat.
-                  }
-                  placeholder={
-                    !me.isAlive 
-                      ? "Trò chuyện với linh hồn khác..." 
-                      : room.currentPhase === 'NIGHT' && me.role !== 'WEREWOLF'
-                        ? "Đêm tối tĩnh lặng..." 
-                        : "Nhập tin nhắn..."
-                  }
-                  className="game-chat-input flex-grow text-sm"
-                />
-                <button 
-                  type="submit"
-                  className="game-chat-send"
-                >
-                  Gửi
-                </button>
-              </form>
-            )}
-          </div>
-        )}
-
-        {/* Tab Content: Logs */}
-        {activeTab === 'logs' && (
-          <div className="game-chat-messages flex-grow overflow-y-auto space-y-3 text-xs text-on-surface-variant">
-            {room.logs.length === 0 ? (
-              <div className="game-chat-empty">
+        {/* Chat Content */}
+        <div className="flex-grow flex flex-col overflow-hidden p-3">
+          {/* Messages box */}
+          <div className="game-chat-messages flex-grow overflow-y-auto space-y-3 text-sm custom-scrollbar pr-1">
+            {messages.length === 0 ? (
+              <div className="game-chat-empty text-center py-10">
                 <div className="game-chat-empty__watermark" aria-hidden="true" />
-                <p>Chưa có nhật ký nghi lễ nào được ghi nhận.</p>
+                <p className="text-red-200 font-bold text-sm">Không có tin nhắn nào.</p>
+                <span className="text-xs text-red-300/60 italic block mt-1">Nghi thức đang diễn ra trong tĩnh lặng.</span>
               </div>
             ) : (
-              room.logs.map((log, index) => (
-                <div key={index} className="game-log-entry">
-                  <div className="flex justify-between text-[10px] text-primary/70 mb-1 border-b border-outline-variant/20 pb-0.5 font-bold">
-                    <span>ĐÊM/NGÀY {log.turn} ({log.phase})</span>
-                    <span>{new Date(log.timestamp).toLocaleTimeString()}</span>
+              messages.map((msg, index) => {
+                let bubbleBg = 'bg-red-950/40 border border-red-900/40';
+                let textColor = 'text-red-100';
+                let roleTag = '';
+
+                if (msg.isWolfChat) {
+                  bubbleBg = 'bg-red-900/40 border border-red-700/60';
+                  textColor = 'text-red-200';
+                  roleTag = '[SÓI] ';
+                } else if (msg.isDeadChat) {
+                  bubbleBg = 'bg-zinc-900/80 border border-zinc-800';
+                  textColor = 'text-zinc-400';
+                  roleTag = '[HỒN MA] ';
+                }
+
+                return (
+                  <div key={index} className={`game-chat-bubble p-2.5 rounded-xl ${bubbleBg} max-w-[90%] ${msg.senderId === playerId ? 'ml-auto border-l-2 border-l-[#e9c349]' : 'mr-auto border-l-2 border-l-red-600'}`}>
+                    <div className="text-[10px] font-body-gothic text-red-300/80 flex justify-between items-center gap-4 mb-1">
+                      <span className="font-bold">{roleTag}{msg.sender}</span>
+                      <span>{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                    <p className={`break-words ${textColor} font-medium`}>{msg.text}</p>
                   </div>
-                  <p className="leading-relaxed">{log.action}</p>
-                </div>
-              ))
+                );
+              })
             )}
+            <div ref={chatEndRef} />
           </div>
-        )}
+
+          {/* Chat Send Form */}
+          {room.status !== 'FINISHED' && (
+            <form onSubmit={handleSendMessage} className="game-chat-form flex gap-2 mt-3">
+              <input 
+                type="text" 
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                disabled={
+                  room.status === 'PLAYING' && 
+                  ((room.currentPhase === 'NIGHT' && me.role !== 'WEREWOLF') || !me.isAlive) && 
+                  me.isAlive
+                }
+                placeholder={
+                  !me.isAlive 
+                    ? "Trò chuyện với linh hồn khác..." 
+                    : room.currentPhase === 'NIGHT' && me.role !== 'WEREWOLF'
+                      ? "Đêm tối tĩnh lặng..." 
+                      : "Nhập tin nhắn..."
+                }
+                className="game-chat-input flex-grow text-sm bg-red-950/60 border border-red-900/60 rounded-lg px-3 py-2 text-white placeholder:text-red-400/50 focus:outline-none focus:border-red-600"
+              />
+              <button 
+                type="submit"
+                className="game-chat-send bg-red-900 hover:bg-red-800 border border-red-700/60 text-white font-bold px-4 py-2 rounded-lg text-xs cursor-pointer transition-all uppercase tracking-wider"
+              >
+                Gửi
+              </button>
+            </form>
+          )}
+        </div>
 
       </aside>
 
