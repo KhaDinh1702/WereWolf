@@ -10,7 +10,7 @@ const OPTION_THEMES = [
   { key: 'D', bg: 'bg-gradient-to-r from-red-950 via-[#1c0709] to-red-900', hover: 'hover:from-[#2b0a0d] hover:to-red-900', border: 'border-red-700/80', labelBg: 'bg-red-950 border border-red-600/60', shape: '■' }
 ];
 
-export default function HostBroadcastView({ room, timeLeft, onCloseHostView }) {
+export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onAdvancePhase }) {
   const [selectedQuestionIndex, setSelectedQuestionIndex] = useState(0);
   const [revealAnswer, setRevealAnswer] = useState(false);
 
@@ -216,20 +216,26 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView }) {
                   "{currentQuestion.question}"
                 </p>
 
-                <div className="mt-3 flex items-center justify-center gap-4 text-xs font-bold">
-                  <span className="bg-red-950/80 border border-red-700/50 px-3 py-1 rounded-full text-red-200">
-                    Lượt trả lời: <strong className="text-[#e9c349]">{currentStats.totalAnswers}</strong> người
-                  </span>
+                <div className="mt-3 flex items-center justify-center gap-3 flex-wrap">
                   <button
                     onClick={() => setRevealAnswer(!revealAnswer)}
-                    className={`px-3.5 py-1 rounded-full border text-xs font-bold transition-all cursor-pointer ${
+                    className={`px-4 py-1.5 rounded-full border text-xs font-bold transition-all cursor-pointer ${
                       revealAnswer
-                        ? 'bg-emerald-700 text-white border-emerald-400 shadow-md'
-                        : 'bg-red-900/80 hover:bg-red-800 text-[#e9c349] border-red-600/60'
+                        ? 'bg-emerald-800 text-white border-emerald-400 shadow-md'
+                        : 'bg-red-900/90 hover:bg-red-800 text-[#e9c349] border-red-600/70'
                     }`}
                   >
-                    {revealAnswer ? '✓ ĐÃ HIỆN ĐÁP ÁN ĐÚNG' : 'HIỆN ĐÁP ÁN ĐÚNG'}
+                    {revealAnswer ? '✓ ĐÃ HIỆN ĐÁP ÁN ĐÚNG' : '💡 HIỆN ĐÁP ÁN ĐÚNG'}
                   </button>
+
+                  {isNight && onAdvancePhase && (
+                    <button
+                      onClick={onAdvancePhase}
+                      className="px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-black font-extrabold text-xs border border-amber-300 shadow-lg cursor-pointer transition-all flex items-center gap-1.5"
+                    >
+                      <span>☀️ CHUYỂN SANG BAN NGÀY</span>
+                    </button>
+                  )}
                 </div>
               </div>
 

@@ -461,6 +461,7 @@ export default function GameRoomPage() {
           room={room}
           timeLeft={timeLeft}
           onCloseHostView={() => setShowHostBroadcast(false)}
+          onAdvancePhase={handleHostAdvancePhase}
         />
       )}
       
@@ -663,16 +664,6 @@ export default function GameRoomPage() {
           {/* Playing Screen / Finished Screen (Players Grid) */}
           {room.status !== 'LOBBY' && (
             <div className="flex-grow flex flex-col">
-              
-              {room.status === 'PLAYING' && room.currentPhase === 'NIGHT' && me.isAlive && me.role !== 'HOST' && (
-                <NightQuizModal
-                  nightQuestions={room.nightQuestions}
-                  quizAnswers={room.quizAnswers}
-                  currentTurn={room.currentTurn}
-                  onAnswer={handleAnswerQuiz}
-                />
-              )}
-
               <div className="night-player-grid grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 flex-grow content-start">
                 {room.players.map((player) => {
                   const isPlayerSelf = player.playerId === playerId;

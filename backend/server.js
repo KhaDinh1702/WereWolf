@@ -352,30 +352,32 @@ io.on('connection', (socket) => {
 
   const checkNightCompletion = (room) => {
     const alivePlayingPlayers = room.players.filter(p => p.isAlive && p.role !== 'HOST');
-    
-    // 1. Check special roles actions
     const pendingSpecialRoles = alivePlayingPlayers.filter(
       p => p.role !== 'VILLAGER' && p.role !== 'NONE' && !p.roleActionDone
     );
-    if (pendingSpecialRoles.length > 0) return false;
-
-    // 2. Check if all alive non-host players answered both questions of the turn
-    const questionIds = (room.nightQuestions || []).map(q => q.id);
-    if (questionIds.length === 0) return true;
-
-    const currentTurnAnswers = (room.quizAnswers || []).filter(a => a.turn === room.currentTurn);
-
-    for (const player of alivePlayingPlayers) {
-      const answeredQIds = currentTurnAnswers
-        .filter(a => a.playerId === player.playerId)
-        .map(a => a.questionId);
-
-      const answeredAll = questionIds.every(qId => answeredQIds.includes(qId));
-      if (!answeredAll) return false;
-    }
-
-    return true;
+    return pendingSpecialRoles.length === 0;
   };
+
+  // Host manual phase advance (e.g. Host finishes 2 questions on Host View)
+  socket.on('host_advance_phase', async ({ roomId, playerId }) => {
+    try {
+      const room = await Room.findOne({ roomId });
+      if (!room || room.hostId !== playerId) return;
+
+      if (room.currentPhase === 'NIGHT') {
+        clearPhaseTimer(roomId);
+        endNightPhase(roomId);
+      } else if (room.currentPhase === 'DAY') {
+        clearPhaseTimer(roomId);
+        endDayPhase(roomId);
+      } else if (room.currentPhase === 'VOTING') {
+        clearPhaseTimer(roomId);
+        endVotingPhase(roomId);
+      }
+    } catch (error) {
+      console.error('Host advance phase error:', error);
+    }
+  });
 
   // Submit quiz answer during night
   socket.on('submit_quiz_answer', async ({ roomId, playerId, questionId, selectedKey }) => {
