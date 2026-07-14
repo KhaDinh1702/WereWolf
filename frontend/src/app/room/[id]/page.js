@@ -254,6 +254,16 @@ export default function GameRoomPage() {
     lastPhaseKeyRef.current = currentPhaseKey;
   }, [currentPhaseKey]);
 
+  const isHost = room?.hostId === playerId;
+  const roomStatus = room?.status;
+
+  // Auto-open Host View for Host when game status is active
+  useEffect(() => {
+    if (isHost && roomStatus && roomStatus !== 'LOBBY') {
+      setShowHostBroadcast(true);
+    }
+  }, [isHost, roomStatus]);
+
   if (!room) {
     return (
       <div className="h-screen w-screen bg-background flex flex-col items-center justify-center font-body-gothic demonic-bg">
@@ -276,7 +286,6 @@ export default function GameRoomPage() {
     roleActionDone: false
   };
 
-  const isHost = room.hostId === playerId;
   const myRoleMeta = getRoleCardMeta(me.role);
 
   const handleStartGame = () => {
@@ -324,13 +333,6 @@ export default function GameRoomPage() {
       router.push('/');
     }
   };
-
-  // Auto-open Host View for Host when game status is active
-  useEffect(() => {
-    if (isHost && room && room.status !== 'LOBBY') {
-      setShowHostBroadcast(true);
-    }
-  }, [isHost, room?.status]);
 
   // Helper rendering for current phase banner
   const renderPhaseBanner = () => {
