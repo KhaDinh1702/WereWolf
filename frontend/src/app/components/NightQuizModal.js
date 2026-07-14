@@ -4,10 +4,10 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 
 const OPTION_STYLES = [
-  { key: 'A', bg: 'bg-red-600/80 hover:bg-red-500', border: 'border-red-400', selectedBg: 'bg-red-600 ring-2 ring-white', shape: '▲' },
-  { key: 'B', bg: 'bg-blue-600/80 hover:bg-blue-500', border: 'border-blue-400', selectedBg: 'bg-blue-600 ring-2 ring-white', shape: '◆' },
-  { key: 'C', bg: 'bg-amber-600/80 hover:bg-amber-500', border: 'border-amber-400', selectedBg: 'bg-amber-600 ring-2 ring-white', shape: '●' },
-  { key: 'D', bg: 'bg-emerald-600/80 hover:bg-emerald-500', border: 'border-emerald-400', selectedBg: 'bg-emerald-600 ring-2 ring-white', shape: '■' }
+  { key: 'A', bg: 'bg-red-950/80 hover:bg-red-900/90', border: 'border-red-700/70', selectedBg: 'bg-red-900 ring-2 ring-[#e9c349]', shape: '▲' },
+  { key: 'B', bg: 'bg-red-950/80 hover:bg-red-900/90', border: 'border-red-700/70', selectedBg: 'bg-red-900 ring-2 ring-[#e9c349]', shape: '◆' },
+  { key: 'C', bg: 'bg-red-950/80 hover:bg-red-900/90', border: 'border-red-700/70', selectedBg: 'bg-red-900 ring-2 ring-[#e9c349]', shape: '●' },
+  { key: 'D', bg: 'bg-red-950/80 hover:bg-red-900/90', border: 'border-red-700/70', selectedBg: 'bg-red-900 ring-2 ring-[#e9c349]', shape: '■' }
 ];
 
 export default function NightQuizModal({ nightQuestions, quizAnswers, currentTurn, onAnswer }) {

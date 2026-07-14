@@ -4,10 +4,10 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 
 const OPTION_THEMES = [
-  { key: 'A', bg: 'bg-red-600', hover: 'hover:bg-red-500', border: 'border-red-400', labelBg: 'bg-red-800', shape: '▲' },
-  { key: 'B', bg: 'bg-blue-600', hover: 'hover:bg-blue-500', border: 'border-blue-400', labelBg: 'bg-blue-800', shape: '◆' },
-  { key: 'C', bg: 'bg-amber-500', hover: 'hover:bg-amber-400', border: 'border-amber-300', labelBg: 'bg-amber-700', shape: '●' },
-  { key: 'D', bg: 'bg-emerald-600', hover: 'hover:bg-emerald-500', border: 'border-emerald-400', labelBg: 'bg-emerald-800', shape: '■' }
+  { key: 'A', bg: 'bg-gradient-to-r from-red-950 via-red-900 to-red-950', hover: 'hover:from-red-900 hover:to-red-850', border: 'border-red-700/80', labelBg: 'bg-red-950 border border-red-600/60', shape: '▲' },
+  { key: 'B', bg: 'bg-gradient-to-r from-red-900 via-[#24080a] to-red-950', hover: 'hover:from-red-850 hover:to-red-900', border: 'border-red-700/80', labelBg: 'bg-red-950 border border-red-600/60', shape: '◆' },
+  { key: 'C', bg: 'bg-gradient-to-r from-[#24080a] via-red-950 to-red-900', hover: 'hover:from-red-900 hover:to-[#2b0a0d]', border: 'border-red-700/80', labelBg: 'bg-red-950 border border-red-600/60', shape: '●' },
+  { key: 'D', bg: 'bg-gradient-to-r from-red-950 via-[#1c0709] to-red-900', hover: 'hover:from-[#2b0a0d] hover:to-red-900', border: 'border-red-700/80', labelBg: 'bg-red-950 border border-red-600/60', shape: '■' }
 ];
 
 export default function HostBroadcastView({ room, timeLeft, onCloseHostView }) {

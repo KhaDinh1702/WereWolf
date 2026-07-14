@@ -350,6 +350,33 @@ io.on('connection', (socket) => {
     }
   };
 
+  const checkNightCompletion = (room) => {
+    const alivePlayingPlayers = room.players.filter(p => p.isAlive && p.role !== 'HOST');
+    
+    // 1. Check special roles actions
+    const pendingSpecialRoles = alivePlayingPlayers.filter(
+      p => p.role !== 'VILLAGER' && p.role !== 'NONE' && !p.roleActionDone
+    );
+    if (pendingSpecialRoles.length > 0) return false;
+
+    // 2. Check if all alive non-host players answered both questions of the turn
+    const questionIds = (room.nightQuestions || []).map(q => q.id);
+    if (questionIds.length === 0) return true;
+
+    const currentTurnAnswers = (room.quizAnswers || []).filter(a => a.turn === room.currentTurn);
+
+    for (const player of alivePlayingPlayers) {
+      const answeredQIds = currentTurnAnswers
+        .filter(a => a.playerId === player.playerId)
+        .map(a => a.questionId);
+
+      const answeredAll = questionIds.every(qId => answeredQIds.includes(qId));
+      if (!answeredAll) return false;
+    }
+
+    return true;
+  };
+
   // Submit quiz answer during night
   socket.on('submit_quiz_answer', async ({ roomId, playerId, questionId, selectedKey }) => {
     try {
@@ -384,6 +411,11 @@ io.on('connection', (socket) => {
 
       await room.save();
       broadcastRoomState(roomId);
+
+      if (checkNightCompletion(room)) {
+        clearPhaseTimer(roomId);
+        endNightPhase(roomId);
+      }
     } catch (error) {
       console.error('Submit quiz answer error:', error);
     }
@@ -418,15 +450,7 @@ io.on('connection', (socket) => {
       await room.save();
       broadcastRoomState(roomId);
 
-      // Check if all alive special roles have acted
-      const activeSpecialRoles = room.players.filter(p => 
-        p.isAlive && 
-        p.role !== 'VILLAGER' && 
-        !p.roleActionDone
-      );
-
-      if (activeSpecialRoles.length === 0) {
-        // All acted, end night immediately
+      if (checkNightCompletion(room)) {
         clearPhaseTimer(roomId);
         endNightPhase(roomId);
       }
