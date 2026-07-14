@@ -125,23 +125,23 @@ describe('Game Logic Tests', () => {
       expect(checkVictory(players, 2)).toBe('WEREWOLF');
     });
 
-    it('should return VILLAGER if reached turn 4 (after 3 nights) and werewolves did not win', () => {
+    it('should return VILLAGER if game exceeds 4 nights (turn 5) and werewolves did not win', () => {
       const players = [
         { playerId: '1', username: 'Sói', role: 'WEREWOLF', isAlive: true },
         { playerId: '2', username: 'Dân 1', role: 'VILLAGER', isAlive: true },
         { playerId: '3', username: 'Dân 2', role: 'VILLAGER', isAlive: true },
         { playerId: '4', username: 'Dân 3', role: 'VILLAGER', isAlive: false }
       ];
-      expect(checkVictory(players, 4)).toBe('VILLAGER');
+      expect(checkVictory(players, 5)).toBe('VILLAGER');
     });
 
-    it('should return NONE if game is still active within 3 nights', () => {
+    it('should return NONE if game is still active within 4 nights', () => {
       const players = [
         { playerId: '1', username: 'Sói', role: 'WEREWOLF', isAlive: true },
         { playerId: '2', username: 'Dân 1', role: 'VILLAGER', isAlive: true },
         { playerId: '3', username: 'Dân 2', role: 'VILLAGER', isAlive: true }
       ];
-      expect(checkVictory(players, 2)).toBe('NONE');
+      expect(checkVictory(players, 4)).toBe('NONE');
     });
   });
 

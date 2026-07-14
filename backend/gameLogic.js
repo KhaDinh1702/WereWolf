@@ -205,8 +205,8 @@ export const checkVictory = (players, currentTurn = 1) => {
     return 'WEREWOLF';
   }
 
-  // 3. Max duration rule: Max 4 nights / After 3 nights (turn >= 4), if wolves haven't won, Villagers win!
-  if (currentTurn >= 4) {
+  // 3. Max duration rule: Game ends after 4 nights (when turn > 4). If wolves haven't won after 4 nights, Villagers win!
+  if (currentTurn > 4) {
     return 'VILLAGER';
   }
 
