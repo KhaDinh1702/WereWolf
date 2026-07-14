@@ -12,7 +12,7 @@ const OPTION_THEMES = [
 
 export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onAdvancePhase }) {
   const [selectedQuestionIndex, setSelectedQuestionIndex] = useState(0);
-  const [revealAnswer, setRevealAnswer] = useState(false);
+  const [selectedAnswers, setSelectedAnswers] = useState({}); // { [questionId]: 'A' | 'B' | 'C' | 'D' }
   const [leftTab, setLeftTab] = useState('survival'); // 'survival' | 'logs'
 
   if (!room) return null;
@@ -32,6 +32,14 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
   const isDayOrVote = room.currentPhase === 'DAY' || room.currentPhase === 'VOTING';
   const phaseLogo = isNight ? '/images/night-logo.png' : isDayOrVote ? '/images/day-logo.png' : '/images/werewolf-logo-small.png';
   const phaseBgImage = isNight ? '/images/night.png' : isDayOrVote ? '/images/day.png' : null;
+
+  const handleOptionClick = (key) => {
+    if (!currentQuestion) return;
+    setSelectedAnswers(prev => ({
+      ...prev,
+      [currentQuestion.id]: prev[currentQuestion.id] === key ? null : key
+    }));
+  };
 
   return (
     <div 
@@ -226,10 +234,7 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
                 {nightQuestions.map((q, idx) => (
                   <button
                     key={q.id}
-                    onClick={() => {
-                      setSelectedQuestionIndex(idx);
-                      setRevealAnswer(false);
-                    }}
+                    onClick={() => setSelectedQuestionIndex(idx)}
                     className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       selectedQuestionIndex === idx
                         ? 'bg-[#e9c349] text-black font-extrabold shadow-md scale-105'
@@ -256,21 +261,10 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
                 </p>
 
                 <div className="mt-3 flex items-center justify-center gap-3 flex-wrap">
-                  <button
-                    onClick={() => setRevealAnswer(!revealAnswer)}
-                    className={`px-4 py-1.5 rounded-full border text-xs font-bold transition-all cursor-pointer ${
-                      revealAnswer
-                        ? 'bg-emerald-800 text-white border-emerald-400 shadow-md'
-                        : 'bg-red-900/90 hover:bg-red-800 text-[#e9c349] border-red-600/70'
-                    }`}
-                  >
-                    {revealAnswer ? '✓ ĐÃ HIỆN ĐÁP ÁN ĐÚNG' : '💡 HIỆN ĐÁP ÁN ĐÚNG'}
-                  </button>
-
                   {isNight && onAdvancePhase && (
                     <button
                       onClick={onAdvancePhase}
-                      className="px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-black font-extrabold text-xs border border-amber-300 shadow-lg cursor-pointer transition-all flex items-center gap-1.5"
+                      className="px-5 py-2 rounded-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-black font-black text-xs border border-amber-300 shadow-xl cursor-pointer transition-all flex items-center gap-1.5 uppercase tracking-wider blood-glow-box hover:scale-105"
                     >
                       <span>☀️ CHUYỂN SANG BAN NGÀY</span>
                     </button>
@@ -278,31 +272,23 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
                 </div>
               </div>
 
-              {/* Options Grid (Kahoot vibrant cards with live stats) */}
+              {/* Options Grid (Host directly clicks options A, B, C, D) */}
               <div className="grid grid-cols-2 gap-4 my-4">
                 {currentQuestion.options.map((opt, i) => {
                   const theme = OPTION_THEMES[i % OPTION_THEMES.length];
-                  const answerCount = currentStats.counts[theme.key] || 0;
-                  const percent = currentStats.totalAnswers > 0
-                    ? Math.round((answerCount / currentStats.totalAnswers) * 100)
-                    : 0;
-                  const isCorrect = revealAnswer && currentQuestion.correctAnswer === theme.key;
+                  const isSelected = selectedAnswers[currentQuestion.id] === theme.key;
+                  const isCorrect = isSelected && currentQuestion.correctAnswer === theme.key;
 
                   return (
                     <div
                       key={opt.key}
-                      className={`relative p-5 rounded-2xl border-2 transition-all shadow-xl flex flex-col justify-between overflow-hidden ${
+                      onClick={() => handleOptionClick(theme.key)}
+                      className={`relative p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 shadow-xl flex flex-col justify-between overflow-hidden hover:scale-[1.02] active:scale-[0.98] ${
                         theme.bg
                       } ${theme.border} ${
-                        isCorrect ? 'ring-4 ring-yellow-300 scale-[1.02]' : ''
+                        isSelected ? 'ring-4 ring-[#e9c349] scale-[1.02] shadow-2xl' : ''
                       }`}
                     >
-                      {/* Bar graph representation */}
-                      <div
-                        className="absolute bottom-0 left-0 bg-black/35 transition-all duration-500 pointer-events-none"
-                        style={{ height: `${percent}%`, width: '100%' }}
-                      />
-
                       <div className="flex items-start justify-between relative z-10">
                         <div className="flex items-center gap-3">
                           <span className={`w-9 h-9 rounded-xl ${theme.labelBg} flex items-center justify-center font-black text-lg text-white shadow-md border border-white/20`}>
@@ -312,20 +298,19 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
                             {theme.key}.
                           </span>
                         </div>
-
-                        {/* Live Answer Count Badge */}
-                        <div className="bg-black/50 border border-white/30 px-3 py-1 rounded-full text-xs font-black text-[#e9c349] backdrop-blur-md">
-                          {answerCount} người ({percent}%)
-                        </div>
                       </div>
 
                       <p className="font-bold text-base md:text-lg text-white mt-3 relative z-10 leading-snug">
                         {opt.text}
                       </p>
 
-                      {isCorrect && (
-                        <div className="absolute top-2 right-2 bg-yellow-400 text-slate-950 font-black text-[10px] px-2 py-0.5 rounded-full border border-yellow-200 uppercase tracking-wider animate-bounce z-20">
-                          ĐÁP ÁN ĐÚNG ✅
+                      {isSelected && (
+                        <div className={`absolute top-3 right-3 px-3 py-1 rounded-full font-black text-xs border uppercase tracking-wider z-20 shadow-lg ${
+                          isCorrect 
+                            ? 'bg-yellow-400 text-slate-950 border-yellow-200 animate-bounce' 
+                            : 'bg-amber-500 text-slate-950 border-amber-300'
+                        }`}>
+                          {isCorrect ? 'ĐÁP ÁN ĐÚNG ✅' : 'ĐÁP ÁN ĐÃ CHỌN 🎯'}
                         </div>
                       )}
                     </div>
