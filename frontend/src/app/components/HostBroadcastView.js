@@ -102,8 +102,8 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
 
           <div className="flex items-center gap-2 bg-red-950/90 border border-red-700/60 px-5 py-2 rounded-full shadow-lg">
             <span className="text-xs uppercase tracking-widest text-red-200 font-bold">Thời gian</span>
-            <span className={`text-2xl font-black font-mono ${timeLeft <= 10 ? 'text-red-500 animate-ping' : 'text-[#e9c349]'}`}>
-              {timeLeft}s
+            <span className={`text-2xl font-black font-mono ${isNight ? 'text-[#e9c349]' : timeLeft <= 10 ? 'text-red-500 animate-ping' : 'text-[#e9c349]'}`}>
+              {isNight ? '∞ (VÔ HẠN)' : `${timeLeft}s`}
             </span>
           </div>
 
@@ -116,111 +116,97 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
         </div>
       </header>
 
-      {/* Main Content Body */}
+      {/* Main Body Layout */}
       <div className="flex-grow grid grid-cols-12 gap-6 p-6 relative z-10 overflow-hidden">
         
-        {/* Left Side: Survival & Host Activity Logs */}
+        {/* Left Side: Survival Roster / Logs Switcher */}
         <section className="col-span-4 bg-[#14080b]/90 border border-red-900/50 rounded-2xl p-5 flex flex-col backdrop-blur-md shadow-xl overflow-hidden">
-          {/* Header Tab Switcher */}
-          <div className="shrink-0 flex items-center gap-2 border-b border-red-900/50 pb-3 mb-3">
-            <button
-              onClick={() => setLeftTab('survival')}
-              className={`flex-1 py-2 px-3 rounded-lg text-xs font-extrabold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                leftTab === 'survival'
-                  ? 'bg-[#e9c349] text-black shadow-md'
-                  : 'bg-red-950/70 text-red-200 hover:bg-red-900/50 border border-red-800/40'
-              }`}
-            >
-              <span>👥 SINH TỒN ({alivePlayers.length}/{playingPlayers.length})</span>
-            </button>
-            <button
-              onClick={() => setLeftTab('logs')}
-              className={`flex-1 py-2 px-3 rounded-lg text-xs font-extrabold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                leftTab === 'logs'
-                  ? 'bg-[#e9c349] text-black shadow-md'
-                  : 'bg-red-950/70 text-red-200 hover:bg-red-900/50 border border-red-800/40'
-              }`}
-            >
-              <span>📜 NHẬT KÝ ({logs.length})</span>
-            </button>
+          
+          {/* Header Switcher */}
+          <div className="shrink-0 flex items-center justify-between border-b border-red-900/50 pb-4 mb-4">
+            <div className="flex items-center gap-2 bg-red-950/80 p-1 rounded-xl border border-red-900/60">
+              <button
+                onClick={() => setLeftTab('survival')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  leftTab === 'survival'
+                    ? 'bg-red-900 text-white shadow-md'
+                    : 'text-red-300/70 hover:text-white'
+                }`}
+              >
+                👥 SINH TỒN ({alivePlayers.length}/{playingPlayers.length})
+              </button>
+              <button
+                onClick={() => setLeftTab('logs')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  leftTab === 'logs'
+                    ? 'bg-red-900 text-white shadow-md'
+                    : 'text-red-300/70 hover:text-white'
+                }`}
+              >
+                📜 NHẬT KÝ ({logs.length})
+              </button>
+            </div>
+
+            <span className="text-[10px] font-mono text-red-300/70 font-bold uppercase">
+              {playingPlayers.length} NGƯỜI CHƠI
+            </span>
           </div>
 
           {leftTab === 'survival' ? (
-            <>
-              <p className="text-xs text-red-300/70 mb-3 italic">
-                *Vai trò của người chơi còn sống được giữ bí mật hoàn toàn.
-              </p>
-
-              {/* Player Cards List */}
-              <div className="flex-grow overflow-y-auto space-y-2 pr-1 custom-scrollbar">
-                {players.map((p) => {
-                  const isHostPlayer = p.playerId === room.hostId || p.role === 'HOST';
-                  const isAlive = p.isAlive;
-                  return (
-                    <div
-                      key={p.playerId}
-                      className={`p-3 rounded-xl border flex items-center justify-between transition-all ${
-                        isHostPlayer
-                          ? 'bg-amber-950/30 border-amber-700/50 text-amber-100'
-                          : isAlive
-                            ? 'bg-red-950/40 border-red-800/40 text-red-100'
-                            : 'bg-black/40 border-red-950/80 text-red-400/60 opacity-60'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-                          isHostPlayer 
-                            ? 'bg-amber-900/60 text-[#e9c349] border border-amber-600/50' 
-                            : isAlive 
-                              ? 'bg-red-900/60 text-white border border-red-700/50' 
-                              : 'bg-black text-red-600 border border-red-900/40'
-                        }`}>
-                          {p.username.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <span className="font-bold text-sm block">{p.username}</span>
-                          <span className="text-[10px] uppercase tracking-wider text-red-300/80">
-                            {isHostPlayer ? 'Chủ phòng' : 'Người chơi'}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        {isHostPlayer ? (
-                          <span className="px-2.5 py-1 rounded-full bg-amber-950/90 border border-amber-500/60 text-[11px] font-bold text-[#e9c349]">
-                            👑 QUẢN TRÒ
-                          </span>
-                        ) : isAlive ? (
-                          <span className="px-2.5 py-1 rounded-full bg-emerald-950/90 border border-emerald-500/50 text-[11px] font-bold text-emerald-400 flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                            CÒN SỐNG
-                          </span>
-                        ) : (
-                          <span className="px-2.5 py-1 rounded-full bg-red-950/90 border border-red-700/60 text-[11px] font-bold text-red-400">
-                            ĐÃ CHẾT
-                          </span>
-                        )}
-                      </div>
+            <div className="flex-grow overflow-y-auto space-y-2.5 custom-scrollbar pr-1">
+              {playingPlayers.map((p) => (
+                <div 
+                  key={p.playerId}
+                  className={`p-3 rounded-xl border flex items-center justify-between transition-all ${
+                    p.isAlive 
+                      ? 'bg-gradient-to-r from-red-950/60 to-[#1e0a0d]/60 border-red-900/40 text-white' 
+                      : 'bg-zinc-950/70 border-zinc-800/60 text-zinc-400 opacity-60'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-full font-serif-gothic flex items-center justify-center font-bold text-sm ${
+                      p.isAlive ? 'bg-red-900/80 text-[#e9c349] border border-red-700' : 'bg-zinc-800 text-zinc-400'
+                    }`}>
+                      {p.username.charAt(0).toUpperCase()}
                     </div>
-                  );
-                })}
-              </div>
-            </>
+                    <div>
+                      <h4 className="font-bold text-sm leading-tight text-white">{p.username}</h4>
+                      <p className="text-[10px] text-red-300/70">
+                        {p.isAlive ? 'Còn sống' : 'Đã chết'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider ${
+                      p.role === 'WEREWOLF'
+                        ? 'bg-red-950 text-red-400 border-red-800'
+                        : p.role === 'SEER'
+                          ? 'bg-purple-950 text-purple-300 border-purple-800'
+                          : p.role === 'BODYGUARD'
+                            ? 'bg-cyan-950 text-cyan-300 border-cyan-800'
+                            : 'bg-amber-950 text-amber-300 border-amber-800'
+                    }`}>
+                      {p.role === 'WEREWOLF' ? 'SÓI 🐺' : p.role === 'SEER' ? 'TIÊN TRI 🔮' : p.role === 'BODYGUARD' ? 'BẢO VỆ 🛡️' : 'DÂN LÀNG 👨‍🌾'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : (
-            /* Exclusive Host Logs Panel */
-            <div className="flex-grow overflow-y-auto space-y-2.5 pr-1 custom-scrollbar">
+            <div className="flex-grow overflow-y-auto space-y-2.5 custom-scrollbar pr-1">
               {logs.length === 0 ? (
-                <div className="text-center py-8 text-red-300/60 text-xs italic">
-                  Chưa có nhật ký hoạt động nào được ghi nhận.
+                <div className="text-center py-10 text-red-300/50 text-xs">
+                  Chưa có nhật ký hoạt động nào.
                 </div>
               ) : (
-                logs.map((log, idx) => (
-                  <div key={idx} className="p-3 rounded-xl bg-red-950/40 border border-red-900/60 text-xs text-red-100 shadow-md">
-                    <div className="flex items-center justify-between text-[10px] text-[#e9c349] font-bold mb-1 border-b border-red-900/40 pb-1">
-                      <span>LƯỢT {log.turn} - GIAI ĐOẠN {log.phase}</span>
+                logs.map((log, index) => (
+                  <div key={index} className="p-2.5 rounded-xl bg-red-950/40 border border-red-900/40 text-xs">
+                    <div className="flex justify-between text-[10px] text-[#e9c349] mb-1 font-bold">
+                      <span>VÒNG {log.turn} ({log.phase})</span>
                       <span>{new Date(log.timestamp).toLocaleTimeString()}</span>
                     </div>
-                    <p className="leading-relaxed text-red-200/90 font-semibold">{log.action}</p>
+                    <p className="text-red-200/90 leading-snug">{log.action}</p>
                   </div>
                 ))
               )}
@@ -254,7 +240,7 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
                         : 'text-red-200 hover:text-white hover:bg-red-900/40'
                     }`}
                   >
-                    CÂU HỎI {idx + 1}
+                    CÂU HỎI {idx + 1} {correctAnswersFound[q.id] ? '✅' : ''}
                   </button>
                 ))}
               </div>
@@ -295,12 +281,18 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
                   ) : null}
 
                   {isNight && onAdvancePhase && (
-                    <button
-                      onClick={onAdvancePhase}
-                      className="px-5 py-2 rounded-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-black font-black text-xs border border-amber-300 shadow-xl cursor-pointer transition-all flex items-center gap-1.5 uppercase tracking-wider blood-glow-box hover:scale-105"
-                    >
-                      <span>☀️ CHUYỂN SANG BAN NGÀY</span>
-                    </button>
+                    nightQuestions.length > 0 && nightQuestions.every(q => correctAnswersFound[q.id]) ? (
+                      <button
+                        onClick={onAdvancePhase}
+                        className="px-6 py-2.5 rounded-full bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-black text-xs border-2 border-yellow-200 shadow-2xl cursor-pointer transition-all flex items-center gap-2 uppercase tracking-wider blood-glow-box hover:scale-105 animate-pulse"
+                      >
+                        <span>☀️ BẮT ĐẦU BAN NGÀY (ĐÃ HOÀN THÀNH 2/2 CÂU)</span>
+                      </button>
+                    ) : (
+                      <div className="px-5 py-2 rounded-full bg-red-950/90 border border-red-800/80 text-red-300 font-bold text-xs uppercase tracking-wider shadow-md">
+                        🔒 CẦN TRẢ LỜI ĐÚNG CẢ 2 CÂU ĐỂ MỞ BAN NGÀY (ĐÃ ĐÚNG: {nightQuestions.filter(q => correctAnswersFound[q.id]).length}/{nightQuestions.length})
+                      </div>
+                    )
                   )}
                 </div>
               </div>

@@ -341,21 +341,11 @@ io.on('connection', (socket) => {
 
       broadcastRoomState(roomId);
 
-      // Setup night timer (e.g. 30 seconds)
-      startPhaseTimer(roomId, room.gameSettings.timerNight, () => {
-        endNightPhase(roomId);
-      });
+      // Night phase time is unlimited (0) until Host completes questions and advances phase
+      startPhaseTimer(roomId, 0, () => {});
     } catch (error) {
       console.error('Trigger night phase error:', error);
     }
-  };
-
-  const checkNightCompletion = (room) => {
-    const alivePlayingPlayers = room.players.filter(p => p.isAlive && p.role !== 'HOST');
-    const pendingSpecialRoles = alivePlayingPlayers.filter(
-      p => p.role !== 'VILLAGER' && p.role !== 'NONE' && !p.roleActionDone
-    );
-    return pendingSpecialRoles.length === 0;
   };
 
   // Host manual phase advance (e.g. Host finishes 2 questions on Host View)
@@ -413,11 +403,6 @@ io.on('connection', (socket) => {
 
       await room.save();
       broadcastRoomState(roomId);
-
-      if (checkNightCompletion(room)) {
-        clearPhaseTimer(roomId);
-        endNightPhase(roomId);
-      }
     } catch (error) {
       console.error('Submit quiz answer error:', error);
     }
@@ -451,11 +436,6 @@ io.on('connection', (socket) => {
 
       await room.save();
       broadcastRoomState(roomId);
-
-      if (checkNightCompletion(room)) {
-        clearPhaseTimer(roomId);
-        endNightPhase(roomId);
-      }
     } catch (error) {
       console.error('Night action error:', error);
     }
