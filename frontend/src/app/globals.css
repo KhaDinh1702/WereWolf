@@ -566,20 +566,25 @@ select {
   width: 100%;
   align-items: center;
   justify-content: center;
-  gap: clamp(18px, 2vw, 34px);
+  flex-wrap: wrap;
+  gap: clamp(12px, 1.5vw, 26px);
+  max-width: 100%;
+  max-height: clamp(360px, 52vh, 520px);
+  overflow-y: auto;
+  padding: 8px 12px;
 }
 
 .lobby-player-card {
   position: relative;
   isolation: isolate;
   display: flex;
-  width: clamp(190px, 14vw, 238px);
-  height: clamp(344px, 39vh, 420px);
-  flex: 0 0 auto;
+  width: clamp(160px, 13vw, 220px);
+  height: clamp(290px, 35vh, 390px);
+  flex: 0 1 auto;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: 30px 22px 24px;
+  padding: 24px 18px 20px;
   border: 1px solid rgba(215, 184, 120, 0.34);
   border-radius: 8px;
   background:
@@ -693,9 +698,9 @@ select {
 .lobby-player-card__avatar {
   position: relative;
   display: grid;
-  width: 118px;
-  height: 118px;
-  margin-top: 36px;
+  width: clamp(86px, 7vw, 110px);
+  height: clamp(86px, 7vw, 110px);
+  margin-top: clamp(16px, 2.5vh, 32px);
   place-items: center;
   border: 1px solid rgba(215, 184, 120, 0.38);
   border-radius: 50%;
@@ -719,7 +724,7 @@ select {
 .lobby-player-card__avatar span {
   color: #f1d29a;
   font-family: var(--font-serif-gothic);
-  font-size: 3.5rem;
+  font-size: clamp(2.4rem, 3.2vw, 3.4rem);
   font-weight: 900;
   text-shadow: 0 0 20px rgba(220, 45, 32, 0.34);
 }
