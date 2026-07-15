@@ -123,7 +123,7 @@ export default function GameRoomPage() {
   const [chatInput, setChatInput] = useState('');
   const [timeLeft, setTimeLeft] = useState(0);
   const [error, setError] = useState('');
-  const [seerReveal, setSeerReveal] = useState(null); // { targetName, role }
+  const [seerResults, setSeerResults] = useState({}); // { [playerId]: role }
   const [showRole, setShowRole] = useState(false);
   const [activeTab, setActiveTab] = useState('chat'); // 'chat' | 'logs'
   const [isAboutOpen, setIsAboutOpen] = useState(false);
@@ -180,11 +180,7 @@ export default function GameRoomPage() {
     };
 
     const handleSeerResult = ({ targetId, role }) => {
-      const currentRoom = roomRef.current;
-      if (!currentRoom) return;
-      const targetPlayer = currentRoom.players.find(p => p.playerId === targetId);
-      const targetName = targetPlayer ? targetPlayer.username : 'Ẩn danh';
-      setSeerReveal({ targetName, role });
+      setSeerResults(prev => ({ ...prev, [targetId]: role }));
     };
 
     const handleErrorMessage = (errMsg) => {
@@ -194,7 +190,7 @@ export default function GameRoomPage() {
 
     const handleGameStarted = () => {
       setMessages([]); // Clear chat logs when game starts
-      setSeerReveal(null);
+      setSeerResults({});
     };
 
     socket.on('room_updated', handleRoomUpdated);
@@ -683,9 +679,9 @@ export default function GameRoomPage() {
                         </div>
 
                         {/* Show revealed roles if finished or wolf pair or seer result */}
-                        {(room.status === 'FINISHED' || (me.role === 'WEREWOLF' && player.role === 'WEREWOLF')) && (
-                          <div className={`night-player-card__role ${player.role === 'WEREWOLF' ? 'is-wolf-role' : ''}`}>
-                            {getRoleLabel(player.role)}
+                        {(room.status === 'FINISHED' || (me.role === 'WEREWOLF' && player.role === 'WEREWOLF') || seerResults[player.playerId]) && (
+                          <div className={`night-player-card__role ${player.role === 'WEREWOLF' || seerResults[player.playerId] === 'WEREWOLF' ? 'is-wolf-role' : ''}`}>
+                            {getRoleLabel(seerResults[player.playerId] || player.role)}
                           </div>
                         )}
                         
