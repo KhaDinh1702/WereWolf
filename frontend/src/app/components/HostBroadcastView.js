@@ -100,7 +100,7 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
             <Image src={phaseLogo} alt="" width={24} height={24} className="shrink-0" />
             <span className="text-sm font-semibold text-red-200/80">Giai đoạn:</span>
             <span className="font-bold text-[#e9c349] uppercase text-sm">
-              {room.status === 'LOBBY' ? 'SẢNH CHỜ' : room.status === 'FINISHED' ? 'KẾT THÚC' : room.currentPhase === 'NIGHT' ? 'BAN ĐÊM' : room.currentPhase === 'DAY' ? 'BAN NGÀY' : 'BIỂU QUYẾT'}
+              {room.status === 'LOBBY' ? 'SẢNH CHỜ' : room.status === 'FINISHED' ? `KẾT THÚC - ${room.winner === 'WEREWOLF' ? 'SÓI THẮNG' : 'DÂN THẮNG'}` : room.currentPhase === 'NIGHT' ? 'BAN ĐÊM' : room.currentPhase === 'DAY' ? 'BAN NGÀY' : 'BIỂU QUYẾT'}
               {nightsLeftText}
             </span>
           </div>

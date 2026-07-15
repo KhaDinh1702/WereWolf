@@ -371,7 +371,7 @@ export default function GameRoomPage() {
     const nightsLeftText = room.status === 'FINISHED' ? '' : ` (Còn ${nightsLeft} đêm)`;
 
     const bannerTitle = room.status === 'FINISHED' ? 'KẾT THÚC NGHI LỄ' : room.currentPhase === 'NIGHT' ? `BAN ĐÊM${nightsLeftText}` : room.currentPhase === 'DAY' ? `BAN NGÀY${nightsLeftText}` : `BIỂU QUYẾT${nightsLeftText}`;
-    const bannerDesc = room.status === 'FINISHED' ? 'Kết quả cuộc săn đã ngã ngũ' : room.currentPhase === 'NIGHT' ? 'Đêm tối tịch mịch - Các vai trò bắt đầu nghi thức' : room.currentPhase === 'DAY' ? 'Bình minh rực rỡ - Hãy thảo luận về kẻ tình nghi' : 'Giờ phán xét - Bỏ phiếu treo cổ kẻ tình nghi';
+    const bannerDesc = room.status === 'FINISHED' ? `Kết quả cuộc săn đã ngã ngũ. Phe ${room.winner === 'WEREWOLF' ? 'MA SÓI' : 'DÂN LÀNG'} đã giành chiến thắng!` : room.currentPhase === 'NIGHT' ? 'Đêm tối tịch mịch - Các vai trò bắt đầu nghi thức' : room.currentPhase === 'DAY' ? 'Bình minh rực rỡ - Hãy thảo luận về kẻ tình nghi' : 'Giờ phán xét - Bỏ phiếu treo cổ kẻ tình nghi';
 
     return (
       <div className="phase-header">
