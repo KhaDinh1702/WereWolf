@@ -319,6 +319,7 @@ export default function GameRoomPage() {
 
   const handleHostAdvancePhase = () => {
     socket.emit('host_advance_phase', { roomId, playerId });
+    setShowHostBroadcast(false);
   };
 
   const handleLeaveRoom = () => {
@@ -402,8 +403,8 @@ export default function GameRoomPage() {
           </button>
           <div className="phase-timer">
             <span>Thời gian còn lại</span>
-            <strong className={timeLeft <= 10 ? 'is-urgent' : ''}>
-              {timeLeft}s
+            <strong className={timeLeft <= 10 && room.currentPhase !== 'NIGHT' ? 'is-urgent' : ''}>
+              {room.currentPhase === 'NIGHT' ? '∞' : `${timeLeft}s`}
             </strong>
           </div>
         </div>

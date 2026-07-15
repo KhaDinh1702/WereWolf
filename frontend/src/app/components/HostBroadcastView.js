@@ -247,7 +247,7 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
             )}
           </div>
 
-          {currentQuestion ? (
+          {currentQuestion && isNight ? (
             <div className="flex-grow flex flex-col justify-between">
               
               {/* Question Text Box */}

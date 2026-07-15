@@ -369,6 +369,16 @@ io.on('connection', (socket) => {
     }
   });
 
+  const endDayPhase = async (roomId) => {
+    try {
+      const room = await Room.findOne({ roomId });
+      if (!room) return;
+      triggerVotingPhase(roomId);
+    } catch (error) {
+      console.error('End day phase error:', error);
+    }
+  };
+
   // Submit quiz answer during night
   socket.on('submit_quiz_answer', async ({ roomId, playerId, questionId, selectedKey }) => {
     try {
