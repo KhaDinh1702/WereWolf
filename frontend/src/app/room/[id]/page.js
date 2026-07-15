@@ -444,7 +444,7 @@ export default function GameRoomPage() {
           
           {/* My Role Widget */}
           {room.status !== 'LOBBY' && (
-            <section className="role-card-panel mb-6">
+            <section className="role-card-panel mb-6 shrink-0">
               <div className="role-card-panel__header">
                 <div className="role-card-panel__copy">
                   <div className="role-card-panel__eyebrow-row">
