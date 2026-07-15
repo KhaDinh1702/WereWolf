@@ -236,7 +236,7 @@ export default function SoundProvider({ children }) {
   return (
     <>
       {children}
-      <div className="fixed bottom-4 left-4 z-40 flex items-center gap-1.5 rounded border border-outline-variant/50 bg-black/75 px-2 py-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.55)] backdrop-blur-sm">
+      <div className="sound-controls fixed bottom-4 left-4 z-40 flex items-center gap-1.5 rounded border border-outline-variant/50 bg-black/75 px-2 py-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.55)] backdrop-blur-sm">
         <button
           type="button"
           onClick={decreaseVolume}

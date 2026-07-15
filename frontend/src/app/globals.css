@@ -1,6 +1,4 @@
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,600;0,700;0,800;0,900;1,600;1,700&display=swap');
 
 @import "tailwindcss";
 
@@ -21,9 +19,13 @@
   --color-error: #ffb4ab;
   --color-error-container: #93000a;
   
-  --font-serif-gothic: "Noto Serif", "Be Vietnam Pro", Georgia, serif;
-  --font-body-gothic: "Be Vietnam Pro", sans-serif;
-  --font-mono-gothic: "Be Vietnam Pro", sans-serif;
+  --font-ui: var(--font-be-vietnam-pro), "Segoe UI", sans-serif;
+  --font-sans: var(--font-ui);
+  --font-serif: var(--font-ui);
+  --font-mono: var(--font-ui);
+  --font-serif-gothic: var(--font-ui);
+  --font-body-gothic: var(--font-ui);
+  --font-mono-gothic: var(--font-ui);
 }
 
 :root {
@@ -34,7 +36,7 @@
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: var(--font-body-gothic);
+  font-family: var(--font-ui);
   letter-spacing: 0;
   font-kerning: normal;
   line-height: 1.5;
@@ -43,17 +45,25 @@ body {
 
 .font-serif-gothic,
 .font-body-gothic,
-.font-mono-gothic {
+.font-mono-gothic,
+.font-serif,
+.font-sans,
+.font-mono {
+  font-family: var(--font-ui) !important;
   letter-spacing: 0;
 }
 
 .font-body-gothic,
 .font-mono-gothic {
-  font-family: var(--font-body-gothic) !important;
+  font-family: var(--font-ui) !important;
 }
 
 .font-serif-gothic {
-  font-family: var(--font-serif-gothic) !important;
+  font-family: var(--font-ui) !important;
+}
+
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined" !important;
 }
 
 [class*="tracking-"] {
@@ -68,7 +78,7 @@ input,
 button,
 textarea,
 select {
-  font-family: var(--font-body-gothic);
+  font-family: var(--font-ui);
   letter-spacing: 0;
   line-height: 1.35;
 }
@@ -530,10 +540,11 @@ select {
 .lobby-centerpiece {
   display: grid;
   place-items: center;
-  gap: clamp(24px, 3vh, 40px);
-  width: min(100%, 1120px);
+  min-height: 0;
+  gap: clamp(16px, 2.4vh, 30px);
+  width: min(100%, 1220px);
   margin: auto;
-  padding: clamp(12px, 2vh, 30px) 0;
+  padding: clamp(8px, 1.4vh, 20px) 0;
 }
 
 .lobby-invocation {
@@ -562,25 +573,25 @@ select {
 }
 
 .lobby-player-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(var(--lobby-columns, 5), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--lobby-rows, 1), minmax(0, auto));
   width: 100%;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: clamp(12px, 1.5vw, 26px);
+  align-items: stretch;
+  justify-content: stretch;
+  gap: clamp(10px, 1.1vw, 18px);
   max-width: 100%;
-  max-height: clamp(360px, 52vh, 520px);
-  overflow-y: auto;
-  padding: 8px 12px;
+  max-height: none;
+  overflow: visible;
+  padding: 6px;
 }
 
 .lobby-player-card {
   position: relative;
   isolation: isolate;
   display: flex;
-  width: clamp(160px, 13vw, 220px);
-  height: clamp(290px, 35vh, 390px);
-  flex: 0 1 auto;
+  width: 100%;
+  height: clamp(280px, 39vh, 370px);
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
@@ -597,6 +608,52 @@ select {
   color: #f3e2c2;
   overflow: hidden;
   transition: transform 0.28s ease, border-color 0.28s ease, box-shadow 0.28s ease;
+}
+
+.lobby-player-row.is-compact .lobby-player-card {
+  height: clamp(178px, 23vh, 226px);
+  padding: 16px 14px 13px;
+}
+
+.lobby-player-row.is-compact .lobby-player-card__corner {
+  width: 28px;
+  height: 28px;
+}
+
+.lobby-player-row.is-compact .lobby-player-card__avatar {
+  width: 64px;
+  height: 64px;
+  margin-top: 12px;
+}
+
+.lobby-player-row.is-compact .lobby-player-card__avatar::before {
+  inset: -6px;
+}
+
+.lobby-player-row.is-compact .lobby-player-card__avatar span {
+  font-size: 2rem;
+}
+
+.lobby-player-row.is-compact .lobby-player-card__body h3 {
+  font-size: 0.88rem;
+}
+
+.lobby-player-row.is-compact .lobby-player-card__body p {
+  margin-top: 4px;
+  font-size: 0.68rem;
+}
+
+.lobby-player-row.is-compact .lobby-player-card__crest {
+  width: 27px;
+  height: 22px;
+  margin-top: 10px;
+}
+
+.lobby-player-row.is-compact .lobby-player-card__ribbon {
+  top: 13px;
+  min-width: 92px;
+  font-size: 0.66rem;
+  padding: 4px 9px;
 }
 
 .lobby-player-card::before,
@@ -1552,32 +1609,15 @@ select {
   display: none;
 }
 
-.role-card-showcase__image {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border-radius: 8px;
-  object-fit: cover;
-}
-
-.role-card-showcase__role-logo {
-  pointer-events: none;
+.role-card-showcase__full-art {
   position: absolute;
-  right: 10px;
-  bottom: 10px;
-  z-index: 2;
-  width: 64px;
-  height: 64px;
-  filter:
-    drop-shadow(0 0 14px rgba(241, 210, 154, 0.32))
-    drop-shadow(0 10px 18px rgba(0, 0, 0, 0.58));
-}
-
-.role-card-showcase__role-logo-image {
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  border-radius: inherit;
+  object-fit: cover;
+  object-position: center;
 }
 
 .role-card-showcase.is-revealed .role-card-showcase__front {
@@ -2145,6 +2185,207 @@ select {
   color: rgba(243, 226, 194, 0.78);
 }
 
+.witch-apothecary {
+  position: relative;
+  z-index: 2;
+  margin-bottom: 24px;
+  overflow: hidden;
+  border: 1px solid rgba(176, 133, 58, 0.44);
+  border-radius: 6px;
+  background:
+    radial-gradient(circle at 12% 20%, rgba(48, 126, 72, 0.2), transparent 30%),
+    radial-gradient(circle at 88% 22%, rgba(164, 24, 18, 0.2), transparent 30%),
+    linear-gradient(130deg, rgba(8, 12, 8, 0.96), rgba(16, 6, 6, 0.96));
+  box-shadow: inset 0 0 42px rgba(0, 0, 0, 0.66), 0 18px 38px rgba(0, 0, 0, 0.38);
+}
+
+.witch-apothecary__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(176, 133, 58, 0.24);
+}
+
+.witch-apothecary__header p {
+  margin: 0 0 3px;
+  color: #c79c5a;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.witch-apothecary__header h2 {
+  margin: 0;
+  color: #f6e7c8;
+  font-family: var(--font-serif-gothic);
+  font-size: 1.25rem;
+  line-height: 1.3;
+}
+
+.witch-apothecary__stock {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.witch-apothecary__stock span {
+  border: 1px solid rgba(88, 194, 113, 0.32);
+  border-radius: 999px;
+  background: rgba(11, 70, 31, 0.22);
+  color: #9ee8ae;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 5px 9px;
+}
+
+.witch-apothecary__stock span + span {
+  border-color: rgba(220, 70, 55, 0.38);
+  background: rgba(105, 9, 8, 0.24);
+  color: #ffaea1;
+}
+
+.witch-apothecary__stock span.is-used {
+  border-color: rgba(145, 132, 112, 0.22);
+  background: rgba(0, 0, 0, 0.24);
+  color: rgba(218, 202, 174, 0.42);
+  text-decoration: line-through;
+}
+
+.witch-apothecary__waiting {
+  padding: 22px 20px;
+  color: rgba(246, 231, 200, 0.64);
+  font-size: 0.84rem;
+  font-style: italic;
+  text-align: center;
+}
+
+.witch-apothecary__waiting.is-complete {
+  color: #c79c5a;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.witch-apothecary__controls {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.8fr) minmax(210px, 1fr) minmax(240px, 1.2fr) auto;
+  align-items: stretch;
+  gap: 12px;
+  padding: 16px 20px 20px;
+}
+
+.witch-apothecary__victim,
+.witch-potion-option {
+  min-width: 0;
+  border-left: 2px solid rgba(176, 133, 58, 0.38);
+  background: rgba(0, 0, 0, 0.26);
+  padding: 10px 12px;
+}
+
+.witch-apothecary__victim,
+.witch-potion-option > span {
+  display: grid;
+  align-content: center;
+  gap: 3px;
+}
+
+.witch-apothecary__victim span,
+.witch-potion-option small {
+  overflow: hidden;
+  color: rgba(246, 231, 200, 0.52);
+  font-size: 0.66rem;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+}
+
+.witch-apothecary__victim strong,
+.witch-potion-option strong {
+  color: #f6e7c8;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.witch-potion-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.witch-potion-option.is-heal {
+  border-left-color: rgba(88, 194, 113, 0.56);
+}
+
+.witch-potion-option.is-poison {
+  display: grid;
+  grid-template-columns: minmax(100px, 0.7fr) minmax(120px, 1fr);
+  border-left-color: rgba(220, 70, 55, 0.6);
+}
+
+.witch-potion-option input {
+  width: 18px;
+  height: 18px;
+  accent-color: #3aa75a;
+}
+
+.witch-potion-option select {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid rgba(220, 70, 55, 0.38);
+  border-radius: 4px;
+  background: rgba(8, 3, 3, 0.88);
+  color: #f6e7c8;
+  font-size: 0.72rem;
+  padding: 8px 9px;
+}
+
+.witch-potion-option.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.witch-apothecary__confirm {
+  align-self: stretch;
+  min-width: 178px;
+  border: 1px solid rgba(176, 133, 58, 0.58);
+  border-radius: 4px;
+  background: linear-gradient(135deg, rgba(88, 16, 12, 0.9), rgba(17, 34, 19, 0.92));
+  color: #f6e7c8;
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 900;
+  padding: 10px 14px;
+}
+
+.witch-apothecary__confirm:hover {
+  border-color: rgba(246, 231, 200, 0.72);
+  box-shadow: 0 0 18px rgba(176, 133, 58, 0.22);
+}
+
+@media (max-width: 1200px) {
+  .witch-apothecary__controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .witch-apothecary__header,
+  .witch-apothecary__controls {
+    grid-template-columns: 1fr;
+  }
+
+  .witch-apothecary__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .witch-apothecary__stock {
+    justify-content: flex-start;
+  }
+}
+
 .night-player-grid {
   align-content: start;
 }
@@ -2297,6 +2538,291 @@ select {
   font-size: 0.66rem;
   font-weight: 800;
   padding: 4px 9px;
+}
+
+.vote-ledger {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  margin-bottom: 24px;
+  overflow: hidden;
+  border: 1px solid rgba(184, 50, 36, 0.56);
+  border-radius: 6px;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(184, 50, 36, 0.2), transparent 30%),
+    linear-gradient(135deg, rgba(18, 6, 6, 0.96), rgba(7, 4, 4, 0.94));
+  box-shadow:
+    inset 0 0 0 1px rgba(241, 210, 154, 0.04),
+    0 18px 42px rgba(0, 0, 0, 0.42);
+  color: #f3e2c2;
+}
+
+.vote-ledger::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    135deg,
+    transparent 0 12px,
+    rgba(241, 210, 154, 0.018) 12px 13px
+  );
+}
+
+.vote-ledger__header,
+.vote-ledger__body,
+.vote-ledger__outcome {
+  position: relative;
+  z-index: 1;
+}
+
+.vote-ledger__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 22px;
+  border-bottom: 1px solid rgba(184, 50, 36, 0.3);
+}
+
+.vote-ledger__eyebrow {
+  margin: 0 0 3px;
+  color: #d9aa6a;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.vote-ledger__header h2 {
+  margin: 0;
+  color: #fff0d3;
+  font-family: var(--font-serif-gothic);
+  font-size: clamp(1.25rem, 2vw, 1.7rem);
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.vote-ledger__progress {
+  display: grid;
+  min-width: 92px;
+  text-align: right;
+}
+
+.vote-ledger__progress strong {
+  color: #ffb4a8;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.vote-ledger__progress span {
+  margin-top: 4px;
+  color: rgba(243, 226, 194, 0.62);
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.vote-ledger__outcome {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 22px;
+  border-bottom: 1px solid rgba(184, 50, 36, 0.24);
+  background: rgba(108, 18, 13, 0.2);
+}
+
+.vote-ledger__outcome.has-victim {
+  background: linear-gradient(90deg, rgba(139, 0, 0, 0.42), rgba(65, 8, 8, 0.18));
+}
+
+.vote-ledger__seal {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  place-items: center;
+  border: 1px solid rgba(241, 210, 154, 0.46);
+  border-radius: 50%;
+  color: #f1d29a;
+  font-weight: 900;
+}
+
+.vote-ledger__outcome p {
+  margin: 0;
+  color: #ffd9ca;
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.vote-ledger__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(230px, 0.8fr);
+  gap: 24px;
+  padding: 18px 22px 22px;
+}
+
+.vote-ledger__body.is-live-only {
+  grid-template-columns: 1fr;
+}
+
+.vote-ledger__ballot-section h3,
+.vote-ledger__tally-section h3 {
+  margin: 0 0 10px;
+  color: rgba(241, 210, 154, 0.68);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.vote-ledger__ballots {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px 14px;
+}
+
+.vote-ballot {
+  display: grid;
+  grid-template-columns: 28px minmax(70px, 0.65fr) minmax(110px, 1.35fr);
+  align-items: center;
+  gap: 9px;
+  min-height: 42px;
+  padding: 6px 9px;
+  border-bottom: 1px solid rgba(184, 146, 90, 0.12);
+}
+
+.vote-ballot__avatar {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid rgba(184, 146, 90, 0.3);
+  border-radius: 50%;
+  background: #090505;
+  color: #f1d29a;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.vote-ballot__voter,
+.vote-ballot__choice,
+.vote-tally__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vote-ballot__voter {
+  color: #fff0d3;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.vote-ballot__choice {
+  color: rgba(243, 226, 194, 0.5);
+  font-size: 0.72rem;
+}
+
+.vote-ballot__choice strong {
+  color: #ffb4a8;
+  font-weight: 800;
+}
+
+.vote-ballot.is-pending {
+  opacity: 0.56;
+}
+
+.vote-ballot.is-pending .vote-ballot__choice {
+  font-style: italic;
+}
+
+.vote-ledger__tallies {
+  display: grid;
+  gap: 6px;
+}
+
+.vote-tally {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 7px 10px;
+  border-left: 2px solid rgba(184, 146, 90, 0.3);
+  background: rgba(0, 0, 0, 0.24);
+}
+
+.vote-tally.is-eliminated {
+  border-left-color: #ff4a3a;
+  background: rgba(139, 0, 0, 0.24);
+}
+
+.vote-tally__rank {
+  color: rgba(241, 210, 154, 0.48);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.vote-tally__name {
+  color: #f3e2c2;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.vote-tally strong {
+  color: #ffb4a8;
+  font-size: 1rem;
+}
+
+.vote-tally > span:last-child {
+  color: rgba(243, 226, 194, 0.48);
+  font-size: 0.65rem;
+}
+
+.vote-ledger--host {
+  height: 100%;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.vote-ledger--host::before {
+  display: none;
+}
+
+.vote-ledger--host .vote-ledger__header {
+  padding: 4px 2px 16px;
+}
+
+.vote-ledger--host .vote-ledger__body {
+  padding: 18px 2px 2px;
+}
+
+.vote-ledger--host .vote-ledger__outcome {
+  margin: 0 2px;
+  border: 1px solid rgba(184, 50, 36, 0.34);
+  border-radius: 5px;
+}
+
+@media (max-width: 1100px) {
+  .vote-ledger__body,
+  .vote-ledger__ballots {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .vote-ledger__header,
+  .vote-ledger__body {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .vote-ballot {
+    grid-template-columns: 28px minmax(68px, 0.7fr) minmax(96px, 1.3fr);
+  }
 }
 
 .night-action-button {
@@ -2640,6 +3166,129 @@ select {
   gap: 14px;
 }
 
+.offline-witch-actions {
+  display: grid;
+  gap: 14px;
+  border: 1px solid rgba(184, 137, 63, 0.42);
+  border-radius: 6px;
+  background:
+    linear-gradient(135deg, rgba(18, 8, 5, 0.94), rgba(35, 5, 10, 0.88)),
+    url('/images/sidebar_texture.png');
+  background-size: cover;
+  padding: 16px;
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.52);
+}
+
+.offline-witch-actions__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.offline-witch-actions__eyebrow {
+  color: rgba(184, 137, 63, 0.8);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.offline-witch-actions h3 {
+  color: #f1dfc0;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.offline-potion-stock {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.offline-potion-stock span {
+  border: 1px solid rgba(118, 196, 122, 0.48);
+  border-radius: 4px;
+  background: rgba(25, 88, 48, 0.2);
+  color: #a8ddb0;
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.offline-potion-stock span:last-child {
+  border-color: rgba(204, 62, 62, 0.52);
+  background: rgba(115, 12, 20, 0.2);
+  color: #ffaaa0;
+}
+
+.offline-potion-stock span.is-empty {
+  border-color: rgba(120, 110, 105, 0.3);
+  background: rgba(0, 0, 0, 0.3);
+  color: rgba(229, 226, 225, 0.42);
+}
+
+.offline-witch-victim {
+  border-left: 2px solid #8b0000;
+  background: rgba(0, 0, 0, 0.28);
+  color: rgba(241, 223, 192, 0.9);
+  padding: 9px 11px;
+  font-size: 13px;
+}
+
+.offline-witch-actions__controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.offline-potion-choice {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 70px;
+  border: 1px solid rgba(118, 196, 122, 0.34);
+  border-radius: 5px;
+  background: rgba(25, 88, 48, 0.12);
+  color: #e5e2e1;
+  padding: 11px 12px;
+  cursor: pointer;
+}
+
+.offline-potion-choice input {
+  width: 18px;
+  height: 18px;
+  accent-color: #4f9b63;
+  flex: 0 0 auto;
+}
+
+.offline-potion-choice span {
+  display: grid;
+  gap: 3px;
+}
+
+.offline-potion-choice strong {
+  color: #a8ddb0;
+  font-size: 13px;
+}
+
+.offline-potion-choice small {
+  color: rgba(229, 226, 225, 0.58);
+  font-size: 11px;
+}
+
+.offline-potion-choice.is-disabled,
+.offline-poison-field.is-disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.offline-vote-entry {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
 .offline-result {
   border: 1px solid rgba(233, 195, 73, 0.38);
   border-radius: 5px;
@@ -2792,6 +3441,23 @@ select {
   .offline-action-grid {
     grid-template-columns: 1fr;
   }
+
+  .offline-witch-actions__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .offline-potion-stock {
+    justify-content: flex-start;
+  }
+
+  .offline-witch-actions__controls {
+    grid-template-columns: 1fr;
+  }
+
+  .offline-vote-entry {
+    grid-template-columns: 1fr;
+  }
 }
 
 @keyframes game-mist-drift {
@@ -2843,12 +3509,12 @@ select {
 
 @media (max-width: 1280px) {
   .lobby-player-row {
-    flex-wrap: wrap;
+    gap: 10px;
   }
 
   .lobby-player-card {
-    width: min(42vw, 220px);
-    height: 350px;
+    width: 100%;
+    height: clamp(260px, 37vh, 340px);
   }
 
   .lobby-player-card__avatar,
@@ -2926,6 +3592,676 @@ select {
 
   .role-card-art {
     width: 138px;
+  }
+}
+
+.game-chat-sidebar__close,
+.mobile-room-nav,
+.mobile-chat-backdrop {
+  display: none;
+}
+
+.game-room-logs {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 8px;
+}
+
+.game-log-entry__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+  color: #d7b878;
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+
+.game-log-entry p {
+  margin: 0;
+  color: rgba(243, 226, 194, 0.82);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 767px) {
+  body {
+    overscroll-behavior: none;
+  }
+
+  .landing-shell {
+    position: relative;
+    display: block;
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .landing-stage {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100dvh !important;
+    padding: 22px 16px 0;
+    justify-content: flex-start;
+    border: 0;
+    background-position: 38% center;
+  }
+
+  .landing-stage .ritual-book {
+    width: min(58vw, 230px);
+    margin-top: 8px;
+  }
+
+  .landing-stage .ritual-sigil {
+    top: 28%;
+    width: 92vw;
+  }
+
+  .landing-stage .ritual-candle {
+    display: none;
+  }
+
+  .landing-panel {
+    width: 100%;
+    height: auto !important;
+    min-height: 64dvh;
+    margin-top: 36dvh;
+    padding-top: 24px;
+    padding-bottom: calc(88px + env(safe-area-inset-bottom));
+    border-top: 1px solid rgba(215, 184, 120, 0.34);
+    border-left: 0;
+    background-color: rgba(7, 2, 2, 0.94);
+    background-position: center top !important;
+    box-shadow:
+      0 -20px 56px rgba(0, 0, 0, 0.72),
+      inset 0 20px 60px rgba(0, 0, 0, 0.34);
+  }
+
+  .landing-panel > div:first-child {
+    padding-right: 20px;
+    padding-left: 20px;
+  }
+
+  .landing-panel input {
+    min-height: 50px;
+    font-size: 1rem;
+  }
+
+  .landing-panel button,
+  .landing-panel a {
+    min-height: 48px;
+  }
+
+  .landing-panel .space-y-8 > :not(:last-child) {
+    margin-bottom: 20px;
+  }
+
+  .room-shell {
+    position: relative;
+    display: block !important;
+    width: 100%;
+    height: 100dvh;
+    min-height: 100dvh;
+  }
+
+  .room-shell .game-stage {
+    width: 100%;
+    height: 100dvh !important;
+    border: 0 !important;
+  }
+
+  .game-content {
+    min-height: 0;
+    padding: 12px !important;
+    padding-bottom: calc(92px + env(safe-area-inset-bottom)) !important;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+  }
+
+  .room-shell-lobby .game-content {
+    overflow-y: auto !important;
+  }
+
+  .lobby-header,
+  .phase-header {
+    min-height: 72px;
+    padding: 11px 13px;
+  }
+
+  .lobby-header {
+    align-items: center;
+    flex-direction: row;
+    gap: 10px;
+  }
+
+  .lobby-brand {
+    min-width: 0;
+    gap: 10px;
+  }
+
+  .lobby-brand__badge {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+  }
+
+  .lobby-brand h1 {
+    overflow: hidden;
+    font-size: 1.08rem;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .lobby-brand p {
+    margin-top: 3px;
+    font-size: 0.68rem;
+  }
+
+  .lobby-header__actions {
+    width: auto;
+    flex: 0 0 auto;
+    gap: 6px;
+  }
+
+  .lobby-rule-button,
+  .phase-rule-button {
+    display: grid;
+    width: 44px;
+    min-height: 44px;
+    padding: 0;
+    place-items: center;
+  }
+
+  .lobby-rule-button > span,
+  .phase-rule-button > span {
+    display: none;
+  }
+
+  .host-view-button {
+    max-width: 96px;
+    min-height: 42px;
+    padding: 6px 8px;
+    font-size: 0.62rem;
+    line-height: 1.25;
+    text-align: center;
+  }
+
+  .phase-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .phase-header__title {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 9px;
+  }
+
+  .phase-header__icon {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+  }
+
+  .phase-header__title > div:last-child {
+    min-width: 0;
+  }
+
+  .phase-header h2 {
+    overflow: hidden;
+    color: #f3e2c2;
+    font-size: 0.96rem;
+    font-weight: 800;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .phase-header p {
+    display: none;
+  }
+
+  .phase-header__actions {
+    gap: 7px;
+  }
+
+  .phase-timer {
+    min-width: 48px;
+    text-align: center;
+  }
+
+  .phase-timer span {
+    display: none;
+  }
+
+  .phase-timer strong {
+    font-size: 1.45rem;
+  }
+
+  .lobby-ritual {
+    min-height: auto;
+    gap: 16px;
+    overflow: visible;
+  }
+
+  .lobby-centerpiece {
+    display: block;
+    width: 100%;
+    padding: 0;
+  }
+
+  .lobby-invocation {
+    grid-template-columns: 24px minmax(0, 1fr) 24px;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .lobby-invocation p {
+    font-size: 0.76rem;
+    font-style: normal;
+    line-height: 1.45;
+  }
+
+  .lobby-player-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-template-rows: none !important;
+    gap: 8px;
+    padding: 0;
+  }
+
+  .lobby-player-card,
+  .lobby-player-row.is-compact .lobby-player-card {
+    height: 168px;
+    min-height: 168px;
+    padding: 13px 10px 11px;
+  }
+
+  .lobby-player-card__corner,
+  .lobby-player-row.is-compact .lobby-player-card__corner {
+    width: 24px;
+    height: 24px;
+  }
+
+  .lobby-player-card__corner-tl,
+  .lobby-player-card__corner-tr {
+    top: 8px;
+  }
+
+  .lobby-player-card__corner-bl,
+  .lobby-player-card__corner-br {
+    bottom: 8px;
+  }
+
+  .lobby-player-card__corner-tl,
+  .lobby-player-card__corner-bl {
+    left: 8px;
+  }
+
+  .lobby-player-card__corner-tr,
+  .lobby-player-card__corner-br {
+    right: 8px;
+  }
+
+  .lobby-player-card__avatar,
+  .lobby-player-row.is-compact .lobby-player-card__avatar {
+    width: 52px;
+    height: 52px;
+    margin-top: 22px;
+  }
+
+  .lobby-player-card__avatar::before,
+  .lobby-player-row.is-compact .lobby-player-card__avatar::before {
+    inset: -5px;
+  }
+
+  .lobby-player-card__avatar span,
+  .lobby-player-row.is-compact .lobby-player-card__avatar span {
+    font-size: 1.65rem;
+  }
+
+  .lobby-player-card__body h3,
+  .lobby-player-row.is-compact .lobby-player-card__body h3 {
+    font-size: 0.8rem;
+  }
+
+  .lobby-player-card__body p,
+  .lobby-player-row.is-compact .lobby-player-card__body p {
+    margin-top: 2px;
+    font-size: 0.62rem;
+  }
+
+  .lobby-player-card__crest,
+  .lobby-player-row.is-compact .lobby-player-card__crest {
+    width: 24px;
+    height: 19px;
+    margin-top: 7px;
+  }
+
+  .lobby-player-card__ribbon,
+  .lobby-player-row.is-compact .lobby-player-card__ribbon {
+    top: 8px;
+    min-width: 78px;
+    padding: 3px 7px;
+    font-size: 0.58rem;
+  }
+
+  .lobby-bottom-bar,
+  .room-shell-lobby .lobby-bottom-bar {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 0;
+  }
+
+  .lobby-waiting-status {
+    order: 1;
+    min-height: 46px;
+    padding: 0 12px;
+  }
+
+  .lobby-start-button {
+    order: 2;
+    min-width: 0;
+    min-height: 48px;
+  }
+
+  .lobby-leave-button {
+    order: 3;
+    min-height: 44px;
+  }
+
+  .lobby-bottom-bar__spacer {
+    display: none;
+  }
+
+  .role-card-panel,
+  .room-shell-night .role-card-panel {
+    display: block;
+    min-height: 0;
+    padding: 12px;
+  }
+
+  .role-card-panel__header,
+  .room-shell-night .role-card-panel__header {
+    min-height: 0;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding: 0;
+  }
+
+  .role-card-panel__eyebrow-row {
+    gap: 6px;
+  }
+
+  .role-card-panel__eyebrow,
+  .room-shell-night .role-card-panel__eyebrow {
+    font-size: 0.64rem;
+  }
+
+  .role-card-panel__crest {
+    width: 18px;
+    height: 18px;
+  }
+
+  .role-card-panel__header h2,
+  .room-shell-night .role-card-panel__header h2 {
+    margin-top: 5px;
+    font-size: 1.18rem;
+  }
+
+  .role-card-panel__status {
+    flex: 0 0 auto;
+    gap: 7px;
+    padding: 7px 9px;
+  }
+
+  .role-card-panel__status > span:first-child {
+    display: none;
+  }
+
+  .role-card-panel__status strong {
+    font-size: 0.72rem;
+  }
+
+  .role-card-panel__life {
+    width: 11px;
+    height: 11px;
+  }
+
+  .role-card-showcase,
+  .room-shell-night .role-card-showcase {
+    width: min(72vw, 260px);
+    min-height: unset;
+    margin: 0 auto;
+    aspect-ratio: 2 / 3;
+  }
+
+  .witch-apothecary__header,
+  .witch-apothecary__controls {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .witch-apothecary__controls {
+    grid-template-columns: 1fr;
+  }
+
+  .witch-potion-option.is-poison {
+    grid-template-columns: 1fr;
+  }
+
+  .witch-apothecary__confirm,
+  .witch-potion-option,
+  .witch-potion-option select {
+    min-height: 48px;
+  }
+
+  .vote-ledger__header {
+    align-items: flex-start;
+  }
+
+  .vote-ledger__body,
+  .vote-ledger__ballots {
+    grid-template-columns: 1fr;
+  }
+
+  .vote-ballot {
+    grid-template-columns: 28px minmax(62px, 0.65fr) minmax(90px, 1.35fr);
+  }
+
+  .night-player-grid,
+  .room-shell-night .night-player-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px !important;
+  }
+
+  .night-player-card {
+    width: 100%;
+    min-width: 0;
+    min-height: 156px;
+    padding: 12px 10px 10px;
+  }
+
+  .night-player-card:hover {
+    transform: none;
+  }
+
+  .night-player-card__avatar {
+    width: 54px;
+    height: 54px;
+    margin-bottom: 8px;
+  }
+
+  .night-player-card__name {
+    font-size: 0.78rem;
+  }
+
+  .night-player-card button {
+    min-height: 44px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .mobile-room-nav {
+    position: fixed;
+    right: 10px;
+    bottom: max(8px, env(safe-area-inset-bottom));
+    left: 10px;
+    z-index: 50;
+    display: flex;
+    min-height: 62px;
+    align-items: stretch;
+    overflow: hidden;
+    border: 1px solid rgba(215, 184, 120, 0.34);
+    border-radius: 8px;
+    background: rgba(7, 3, 3, 0.94);
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.66);
+    backdrop-filter: blur(14px);
+  }
+
+  .mobile-room-nav button {
+    display: grid;
+    min-width: 0;
+    min-height: 58px;
+    flex: 1;
+    place-items: center;
+    align-content: center;
+    gap: 2px;
+    border: 0;
+    border-right: 1px solid rgba(215, 184, 120, 0.12);
+    background: transparent;
+    color: #a58a74;
+    font-size: 0.65rem;
+    font-weight: 700;
+  }
+
+  .mobile-room-nav button:last-child {
+    border-right: 0;
+  }
+
+  .mobile-room-nav button.is-active {
+    background: rgba(90, 13, 11, 0.46);
+    color: #fff0d3;
+  }
+
+  .mobile-room-nav .material-symbols-outlined {
+    font-size: 1.3rem;
+  }
+
+  .mobile-chat-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    display: block;
+    border: 0;
+    background: rgba(0, 0, 0, 0.68);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.24s ease;
+  }
+
+  .mobile-chat-backdrop.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .game-chat-sidebar {
+    position: fixed !important;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 60;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: min(72dvh, 620px) !important;
+    max-height: calc(100dvh - 24px);
+    padding-bottom: env(safe-area-inset-bottom);
+    border-top: 1px solid rgba(215, 184, 120, 0.42);
+    border-left: 0;
+    border-radius: 8px 8px 0 0;
+    box-shadow: 0 -22px 54px rgba(0, 0, 0, 0.74);
+    transform: translateY(105%);
+    transition: transform 0.28s cubic-bezier(0.22, 0.74, 0.22, 1);
+  }
+
+  .game-chat-sidebar.is-mobile-open {
+    transform: translateY(0);
+  }
+
+  .game-chat-sidebar::before {
+    inset: 8px;
+  }
+
+  .game-chat-sidebar__top {
+    min-height: 58px;
+    gap: 8px;
+    padding: 12px 12px 0;
+  }
+
+  .game-chat-sidebar__tab {
+    min-height: 44px;
+    padding-bottom: 10px;
+    font-size: 0.82rem;
+  }
+
+  .game-chat-sidebar__close {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    place-items: center;
+    border: 1px solid rgba(215, 184, 120, 0.24);
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.44);
+    color: #f3e2c2;
+  }
+
+  .game-chat-sidebar__close .material-symbols-outlined {
+    font-size: 1.2rem;
+  }
+
+  .game-chat-messages,
+  .game-room-logs {
+    padding: 10px;
+  }
+
+  .game-chat-empty {
+    min-height: 160px;
+  }
+
+  .game-chat-form {
+    margin-top: 6px;
+    padding: 10px;
+  }
+
+  .game-chat-input {
+    min-height: 48px;
+    font-size: 1rem;
+  }
+
+  .game-chat-send {
+    min-width: 62px;
+    min-height: 48px;
+    padding: 0 12px;
+  }
+
+  .sound-controls {
+    bottom: calc(78px + env(safe-area-inset-bottom)) !important;
+    left: 8px !important;
+    z-index: 49 !important;
+    transform: scale(0.88);
+    transform-origin: bottom left;
   }
 }
 

@@ -66,7 +66,7 @@ export default function NightQuizModal({ nightQuestions, quizAnswers, currentTur
       {/* Question Content */}
       <div className="bg-red-950/60 border border-red-800/40 rounded-xl p-4 mb-4">
         <p className="text-sm md:text-base font-bold text-[#e9c349] leading-snug">
-          Câu {activeTab + 1}: "{currentQuestion.question}"
+          Câu {activeTab + 1}: &ldquo;{currentQuestion.question}&rdquo;
         </p>
       </div>
 

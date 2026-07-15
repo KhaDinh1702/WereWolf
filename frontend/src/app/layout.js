@@ -1,16 +1,32 @@
 import './globals.css';
 import Script from 'next/script';
+import { Be_Vietnam_Pro } from 'next/font/google';
 import { SocketProvider } from '@/context/SocketContext';
 import SoundProvider from '@/app/components/SoundProvider';
+
+const beVietnamPro = Be_Vietnam_Pro({
+  variable: '--font-be-vietnam-pro',
+  subsets: ['latin', 'vietnamese'],
+  weight: ['400', '500', '600', '700', '800', '900'],
+  style: ['normal', 'italic'],
+  display: 'swap'
+});
 
 export const metadata = {
   title: 'Ma Sói - Nghi Thức Bóng Đêm',
   description: 'Trò chơi Ma Sói trực tuyến - Trải nghiệm nghi thức Gothic kỳ bí, đấu trí kịch tính cùng bạn bè.',
 };
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#0e0e0e'
+};
+
 export default function RootLayout({ children }) {
   return (
-    <html lang="vi" className="dark h-full">
+    <html lang="vi" className={`dark h-full ${beVietnamPro.variable}`}>
       <head>
         <Script
           id="remove-extension-hydration-attrs"
@@ -64,7 +80,7 @@ export default function RootLayout({ children }) {
           }}
         />
       </head>
-      <body className="h-full bg-background text-on-background antialiased overflow-hidden">
+      <body className={`${beVietnamPro.className} h-full bg-background text-on-background antialiased overflow-hidden`}>
         <SocketProvider>
           <SoundProvider>
             {children}

@@ -2,12 +2,13 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
+import VoteLedger from './VoteLedger';
 
 const OPTION_THEMES = [
-  { key: 'A', bg: 'bg-red-950', hover: 'hover:bg-red-900', border: 'border-red-700/80', labelBg: 'bg-red-950 border border-red-600/60', shape: 'A' },
+  { key: 'A', bg: 'bg-[#24080a]', hover: 'hover:bg-[#2b0a0d]', border: 'border-red-700/80', labelBg: 'bg-red-950 border border-red-600/60', shape: 'A' },
   { key: 'B', bg: 'bg-[#24080a]', hover: 'hover:bg-[#2b0a0d]', border: 'border-red-700/80', labelBg: 'bg-red-950 border border-red-600/60', shape: 'B' },
-  { key: 'C', bg: 'bg-[#2b0a0d]', hover: 'hover:bg-[#340c10]', border: 'border-red-700/80', labelBg: 'bg-red-950 border border-red-600/60', shape: 'C' },
-  { key: 'D', bg: 'bg-[#1c0709]', hover: 'hover:bg-[#24080a]', border: 'border-red-700/80', labelBg: 'bg-red-950 border border-red-600/60', shape: 'D' }
+  { key: 'C', bg: 'bg-[#24080a]', hover: 'hover:bg-[#2b0a0d]', border: 'border-red-700/80', labelBg: 'bg-red-950 border border-red-600/60', shape: 'C' },
+  { key: 'D', bg: 'bg-[#24080a]', hover: 'hover:bg-[#2b0a0d]', border: 'border-red-700/80', labelBg: 'bg-red-950 border border-red-600/60', shape: 'D' }
 ];
 
 export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onAdvancePhase }) {
@@ -19,7 +20,7 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
   if (!room) return null;
 
   const players = room.players || [];
-  const playingPlayers = players.filter(p => p.playerId !== room.hostId);
+  const playingPlayers = players.filter(player => player.playerId !== room.hostId);
   const alivePlayers = playingPlayers.filter(p => p.isAlive);
   const logs = room.logs || [];
   
@@ -27,7 +28,11 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
   const currentQuestion = nightQuestions[selectedQuestionIndex] || nightQuestions[0];
 
   const isNight = room.currentPhase === 'NIGHT';
+  const isVoting = room.currentPhase === 'VOTING';
   const isDayOrVote = room.currentPhase === 'DAY' || room.currentPhase === 'VOTING';
+  const activeVoteResult = room.lastVoteResult?.turn === room.currentTurn
+    ? room.lastVoteResult
+    : null;
   const phaseLogo = isNight ? '/images/night-logo.png' : isDayOrVote ? '/images/day-logo.png' : '/images/werewolf-logo-small.png';
   const phaseBgImage = isNight ? '/images/night.png' : isDayOrVote ? '/images/day.png' : null;
 
@@ -188,11 +193,25 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
                         ? 'bg-red-950 text-red-400 border-red-800'
                         : p.role === 'SEER'
                           ? 'bg-purple-950 text-purple-300 border-purple-800'
+                          : p.role === 'WITCH'
+                            ? 'bg-emerald-950 text-emerald-300 border-emerald-800'
                           : p.role === 'BODYGUARD'
                             ? 'bg-cyan-950 text-cyan-300 border-cyan-800'
-                            : 'bg-amber-950 text-amber-300 border-amber-800'
+                            : p.role === 'VILLAGER'
+                              ? 'bg-amber-950 text-amber-300 border-amber-800'
+                              : 'bg-zinc-950 text-zinc-400 border-zinc-700'
                     }`}>
-                      {p.role === 'WEREWOLF' ? 'SÓI' : p.role === 'SEER' ? 'TIÊN TRI' : p.role === 'BODYGUARD' ? 'BẢO VỆ' : 'DÂN LÀNG'}
+                      {p.role === 'WEREWOLF'
+                        ? 'SÓI'
+                        : p.role === 'SEER'
+                          ? 'TIÊN TRI'
+                          : p.role === 'WITCH'
+                            ? 'PHÙ THỦY'
+                            : p.role === 'BODYGUARD'
+                              ? 'BẢO VỆ'
+                              : p.role === 'VILLAGER'
+                                ? 'DÂN LÀNG'
+                                : 'ẨN DANH'}
                     </span>
                   </div>
                 </div>
@@ -226,14 +245,16 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
           <div className="shrink-0 flex items-center justify-between border-b border-red-900/50 pb-4 mb-4">
             <div>
               <span className="text-xs font-bold uppercase tracking-widest text-[#e9c349] block">
-                CÂU HỎI TRẮC NGHIỆM KINH TẾ (ĐÊM {room.currentTurn || 1})
+                {isVoting
+                  ? `KIỂM PHIẾU CÔNG KHAI (VÒNG ${room.currentTurn || 1})`
+                  : `CÂU HỎI TRẮC NGHIỆM KINH TẾ (ĐÊM ${room.currentTurn || 1})`}
               </span>
               <h2 className="text-lg font-extrabold text-white">
-                GIAO DIỆN HOST VIEW
+                {isVoting ? 'BIÊN BẢN BIỂU QUYẾT' : 'GIAO DIỆN HOST VIEW'}
               </h2>
             </div>
 
-            {nightQuestions.length > 0 && (
+            {isNight && nightQuestions.length > 0 && (
               <div className="flex items-center gap-2 bg-red-950/60 p-1.5 rounded-xl border border-red-800/40">
                 {nightQuestions.map((q, idx) => (
                   <button
@@ -252,7 +273,16 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
             )}
           </div>
 
-          {currentQuestion && isNight ? (
+          {isVoting ? (
+            <div className="flex-grow min-h-0 overflow-y-auto custom-scrollbar pr-1">
+              <VoteLedger
+                players={room.players}
+                voteResult={activeVoteResult}
+                currentTurn={room.currentTurn}
+                variant="host"
+              />
+            </div>
+          ) : currentQuestion && isNight ? (
             <div className="flex-grow flex flex-col justify-between">
               
               {/* Question Text Box */}
@@ -261,7 +291,7 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
                   CÂU {selectedQuestionIndex + 1} / {nightQuestions.length}
                 </span>
                 <p className="text-xl md:text-2xl font-black text-[#e9c349] mt-2 leading-snug">
-                  "{currentQuestion.question}"
+                  &ldquo;{currentQuestion.question}&rdquo;
                 </p>
 
                 <div className="mt-3 flex items-center justify-center gap-3 flex-wrap">
@@ -319,7 +349,7 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
                           ? 'bg-zinc-950 border-red-950 opacity-40 grayscale cursor-not-allowed'
                           : isCorrect
                             ? 'bg-emerald-900 border-emerald-400 ring-4 ring-yellow-400 scale-[1.02] shadow-2xl'
-                            : `${theme.bg} ${theme.border} cursor-pointer hover:scale-[1.02] active:scale-[0.98]`
+                            : `${theme.bg} ${theme.hover} ${theme.border} cursor-pointer hover:scale-[1.02] active:scale-[0.98]`
                       }`}
                     >
                       <div className="flex items-start justify-between relative z-10">

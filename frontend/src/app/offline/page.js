@@ -2,10 +2,12 @@
 
 import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
+import VoteLedger from '@/app/components/VoteLedger';
 
 const ROLE_LABELS = {
   WEREWOLF: 'Ma Sói',
   SEER: 'Tiên Tri',
+  WITCH: 'Phù Thủy',
   BODYGUARD: 'Bảo Vệ',
   VILLAGER: 'Dân Làng',
 };
@@ -19,7 +21,16 @@ const PHASE_LABELS = {
   FINISHED: 'Kết thúc',
 };
 
-const initialNames = ['Người chơi 1', 'Người chơi 2', 'Người chơi 3', 'Người chơi 4'].join('\n');
+const initialNames = [
+  'Người chơi 1',
+  'Người chơi 2',
+  'Người chơi 3',
+  'Người chơi 4',
+  'Người chơi 5',
+  'Người chơi 6',
+  'Người chơi 7',
+  'Người chơi 8'
+].join('\n');
 
 const shuffle = (items) => {
   const nextItems = [...items];
@@ -30,21 +41,19 @@ const shuffle = (items) => {
   return nextItems;
 };
 
-const buildRoles = (count) => {
-  let werewolfCount = 1;
-  if (count >= 6) werewolfCount = 2;
-  if (count >= 9) werewolfCount = 3;
-
-  return [
-    ...Array(werewolfCount).fill('WEREWOLF'),
+const buildRoles = () => [
+    'WEREWOLF',
+    'WEREWOLF',
     'SEER',
+    'WITCH',
     'BODYGUARD',
-    ...Array(count - werewolfCount - 2).fill('VILLAGER'),
+    'VILLAGER',
+    'VILLAGER',
+    'VILLAGER'
   ];
-};
 
 const assignRoles = (names) => {
-  const roles = shuffle(buildRoles(names.length));
+  const roles = shuffle(buildRoles());
   return names.map((name, index) => ({
     id: `offline_${index}_${Date.now()}`,
     name,
@@ -80,7 +89,12 @@ export default function OfflineGamePage() {
   const [guardTargetId, setGuardTargetId] = useState('');
   const [seerTargetId, setSeerTargetId] = useState('');
   const [seerResult, setSeerResult] = useState(null);
-  const [voteTargetId, setVoteTargetId] = useState('');
+  const [witchHealUsed, setWitchHealUsed] = useState(false);
+  const [witchPoisonUsed, setWitchPoisonUsed] = useState(false);
+  const [witchUseHeal, setWitchUseHeal] = useState(false);
+  const [witchPoisonTargetId, setWitchPoisonTargetId] = useState('');
+  const [offlineVotes, setOfflineVotes] = useState({});
+  const [offlineVoteResult, setOfflineVoteResult] = useState(null);
   const [logs, setLogs] = useState([]);
   const [winner, setWinner] = useState('NONE');
   const [error, setError] = useState('');
@@ -88,6 +102,15 @@ export default function OfflineGamePage() {
   const alivePlayers = useMemo(() => players.filter((player) => player.isAlive), [players]);
   const currentRevealPlayer = players[revealIndex];
   const werewolves = players.filter((player) => player.role === 'WEREWOLF');
+  const offlineLedgerPlayers = players.map((player) => ({
+    playerId: player.id,
+    username: player.name,
+    isAlive: player.isAlive,
+    hasVoted: Object.prototype.hasOwnProperty.call(offlineVotes, player.id),
+    voteTarget: offlineVotes[player.id] && offlineVotes[player.id] !== 'ABSTAIN'
+      ? offlineVotes[player.id]
+      : null
+  }));
 
   const addLog = (message) => {
     setLogs((currentLogs) => [
@@ -107,8 +130,8 @@ export default function OfflineGamePage() {
       .map((name) => name.trim())
       .filter(Boolean);
 
-    if (names.length < 4) {
-      setError('Cần tối thiểu 4 người chơi để bắt đầu.');
+    if (names.length !== 8) {
+      setError('Chế độ này cần đúng 8 người chơi để bắt đầu.');
       return;
     }
 
@@ -123,6 +146,12 @@ export default function OfflineGamePage() {
     setTurn(1);
     setLogs([]);
     setWinner('NONE');
+    setWitchHealUsed(false);
+    setWitchPoisonUsed(false);
+    setWitchUseHeal(false);
+    setWitchPoisonTargetId('');
+    setOfflineVotes({});
+    setOfflineVoteResult(null);
     setError('');
     setPhase('REVEAL');
   };
@@ -154,17 +183,34 @@ export default function OfflineGamePage() {
 
   const finishNight = () => {
     const nextPlayers = players.map((player) => ({ ...player }));
-    let nightMessage = 'Đêm trôi qua yên bình. Không ai chết.';
+    const killedPlayerIds = [];
+    const healApplied = Boolean(wolfTargetId && witchUseHeal && !witchHealUsed);
 
-    if (wolfTargetId && wolfTargetId !== guardTargetId) {
+    if (wolfTargetId && wolfTargetId !== guardTargetId && !healApplied) {
       const victim = nextPlayers.find((player) => player.id === wolfTargetId);
       if (victim?.isAlive) {
         victim.isAlive = false;
-        nightMessage = `Đêm qua, ${victim.name} đã bị Ma Sói cắn.`;
+        killedPlayerIds.push(victim.id);
       }
-    } else if (wolfTargetId && wolfTargetId === guardTargetId) {
-      nightMessage = `${getPlayerName(players, wolfTargetId)} đã được Bảo Vệ che chở qua đêm.`;
     }
+
+    if (witchPoisonTargetId && !witchPoisonUsed) {
+      const poisonVictim = nextPlayers.find((player) => player.id === witchPoisonTargetId);
+      if (poisonVictim?.isAlive) {
+        poisonVictim.isAlive = false;
+        if (!killedPlayerIds.includes(poisonVictim.id)) killedPlayerIds.push(poisonVictim.id);
+      }
+    }
+
+    if (healApplied) setWitchHealUsed(true);
+    if (witchPoisonTargetId && !witchPoisonUsed) setWitchPoisonUsed(true);
+
+    const killedNames = killedPlayerIds.map((id) => getPlayerName(nextPlayers, id));
+    const nightMessage = killedNames.length === 0
+      ? 'Đêm trôi qua yên bình. Không ai chết.'
+      : killedNames.length === 1
+        ? `Đêm qua, ${killedNames[0]} đã chết trong bóng tối.`
+        : `Đêm qua, ${killedNames.join(' và ')} đã chết trong bóng tối.`;
 
     const nextWinner = checkVictory(nextPlayers);
     setPlayers(nextPlayers);
@@ -173,6 +219,8 @@ export default function OfflineGamePage() {
     setGuardTargetId('');
     setSeerTargetId('');
     setSeerResult(null);
+    setWitchUseHeal(false);
+    setWitchPoisonTargetId('');
 
     if (nextWinner !== 'NONE') {
       setWinner(nextWinner);
@@ -184,33 +232,83 @@ export default function OfflineGamePage() {
   };
 
   const startVoting = () => {
-    setVoteTargetId('');
+    setOfflineVotes({});
+    setOfflineVoteResult(null);
     setPhase('VOTING');
   };
 
   const finishVoting = () => {
     const nextPlayers = players.map((player) => ({ ...player }));
-    let voteMessage = 'Dân làng không treo cổ ai trong lượt này.';
+    const voters = nextPlayers.filter((player) => player.isAlive);
+    const playerById = new Map(nextPlayers.map((player) => [player.id, player]));
+    const voteCounts = {};
+    const ballots = voters.map((voter) => {
+      const selectedTargetId = offlineVotes[voter.id];
+      const target = selectedTargetId && selectedTargetId !== 'ABSTAIN'
+        ? playerById.get(selectedTargetId)
+        : null;
 
-    if (voteTargetId) {
-      const victim = nextPlayers.find((player) => player.id === voteTargetId);
-      if (victim?.isAlive) {
-        victim.isAlive = false;
-        voteMessage = `Dân làng đã treo cổ ${victim.name} (${getRoleLabel(victim.role)}).`;
+      if (target) {
+        voteCounts[target.id] = (voteCounts[target.id] || 0) + 1;
       }
-    }
+
+      return {
+        voterPlayerId: voter.id,
+        voterUsername: voter.name,
+        targetPlayerId: target?.id || null,
+        targetUsername: target?.name || null
+      };
+    });
+    const tallies = voters
+      .map((player) => ({
+        playerId: player.id,
+        username: player.name,
+        votes: voteCounts[player.id] || 0
+      }))
+      .sort((a, b) => b.votes - a.votes || a.username.localeCompare(b.username, 'vi'));
+    const highestVoteCount = tallies[0]?.votes || 0;
+    const leadingPlayers = highestVoteCount > 0
+      ? tallies.filter((tally) => tally.votes === highestVoteCount)
+      : [];
+    const votedOutPlayerId = leadingPlayers.length === 1 ? leadingPlayers[0].playerId : null;
+    const victim = votedOutPlayerId
+      ? nextPlayers.find((player) => player.id === votedOutPlayerId)
+      : null;
+
+    if (victim) victim.isAlive = false;
+
+    const totalVotes = ballots.filter((ballot) => ballot.targetPlayerId).length;
+    const voteMessage = victim
+      ? `Dân làng đã treo cổ ${victim.name} (${getRoleLabel(victim.role)}).`
+      : leadingPlayers.length > 1
+        ? 'Biểu quyết hòa phiếu, không ai bị treo cổ trong lượt này.'
+        : 'Dân làng không treo cổ ai trong lượt này.';
+
+    setOfflineVoteResult({
+      turn,
+      ballots,
+      tallies,
+      totalVotes,
+      eligibleVoters: voters.length,
+      votedOutPlayerId,
+      votedOutUsername: victim?.name || null,
+      isTie: leadingPlayers.length > 1
+    });
 
     const nextWinner = checkVictory(nextPlayers);
     setPlayers(nextPlayers);
     addLog(voteMessage);
-    setVoteTargetId('');
+    setWinner(nextWinner);
+  };
 
-    if (nextWinner !== 'NONE') {
-      setWinner(nextWinner);
+  const continueAfterVoting = () => {
+    if (winner !== 'NONE') {
       setPhase('FINISHED');
       return;
     }
 
+    setOfflineVotes({});
+    setOfflineVoteResult(null);
     setTurn((currentTurn) => currentTurn + 1);
     setPhase('NIGHT');
   };
@@ -225,7 +323,12 @@ export default function OfflineGamePage() {
     setGuardTargetId('');
     setSeerTargetId('');
     setSeerResult(null);
-    setVoteTargetId('');
+    setWitchHealUsed(false);
+    setWitchPoisonUsed(false);
+    setWitchUseHeal(false);
+    setWitchPoisonTargetId('');
+    setOfflineVotes({});
+    setOfflineVoteResult(null);
     setLogs([]);
     setWinner('NONE');
     setError('');
@@ -239,7 +342,7 @@ export default function OfflineGamePage() {
           <p className="text-xs text-primary/70 font-bold">Chế độ dự phòng</p>
           <h1 className="text-2xl md:text-3xl font-bold text-primary blood-glow">Ma Sói offline cho lớp học</h1>
           <p className="text-sm text-on-surface-variant mt-1">
-            Chạy hoàn toàn trên trình duyệt, không cần máy chủ, socket hay MongoDB.
+            Chạy hoàn toàn trên trình duyệt; người cầm máy làm quản trò cho 8 người chơi.
           </p>
         </div>
         <Link href="/" className="offline-ghost-button">Về sảnh online</Link>
@@ -256,7 +359,7 @@ export default function OfflineGamePage() {
             <div className="space-y-5">
               <div>
                 <h2 className="offline-title">Nhập danh sách người chơi</h2>
-                <p className="offline-help">Mỗi dòng một tên, hoặc ngăn cách bằng dấu phẩy. Tối thiểu 4 người.</p>
+                <p className="offline-help">Mỗi dòng một tên, hoặc ngăn cách bằng dấu phẩy. Cần đúng 8 người chơi.</p>
               </div>
               <textarea
                 value={namesInput}
@@ -303,7 +406,7 @@ export default function OfflineGamePage() {
               </div>
               <div className="offline-action-grid">
                 <label className="offline-field">
-                  Ma Sói chọn nạn nhân
+                  Hai Ma Sói thống nhất nạn nhân
                   <select value={wolfTargetId} onChange={(event) => setWolfTargetId(event.target.value)}>
                     <option value="">Không cắn ai</option>
                     {alivePlayers.filter((player) => player.role !== 'WEREWOLF').map((player) => (
@@ -330,6 +433,60 @@ export default function OfflineGamePage() {
                   </select>
                 </label>
               </div>
+              <section className="offline-witch-actions" aria-labelledby="offline-witch-title">
+                <div className="offline-witch-actions__header">
+                  <div>
+                    <p className="offline-witch-actions__eyebrow">Tủ thuốc trong đêm</p>
+                    <h3 id="offline-witch-title">Phù Thủy</h3>
+                  </div>
+                  <div className="offline-potion-stock" aria-label="Số bình thuốc còn lại">
+                    <span className={witchHealUsed ? 'is-empty' : ''}>
+                      Bình cứu: {witchHealUsed ? 'đã dùng' : 'còn 1'}
+                    </span>
+                    <span className={witchPoisonUsed ? 'is-empty' : ''}>
+                      Bình độc: {witchPoisonUsed ? 'đã dùng' : 'còn 1'}
+                    </span>
+                  </div>
+                </div>
+
+                <p className="offline-witch-victim">
+                  {wolfTargetId
+                    ? `Đêm nay Ma Sói đã chọn ${getPlayerName(players, wolfTargetId)}.`
+                    : 'Đêm nay Ma Sói không chọn được nạn nhân.'}
+                </p>
+
+                <div className="offline-witch-actions__controls">
+                  <label className={`offline-potion-choice ${witchHealUsed || !wolfTargetId ? 'is-disabled' : ''}`}>
+                    <input
+                      type="checkbox"
+                      checked={witchUseHeal}
+                      onChange={(event) => setWitchUseHeal(event.target.checked)}
+                      disabled={witchHealUsed || !wolfTargetId}
+                    />
+                    <span>
+                      <strong>Dùng bình cứu</strong>
+                      <small>Cứu nạn nhân mà Ma Sói vừa chọn.</small>
+                    </span>
+                  </label>
+
+                  <label className={`offline-field offline-poison-field ${witchPoisonUsed ? 'is-disabled' : ''}`}>
+                    Dùng bình độc
+                    <select
+                      value={witchPoisonTargetId}
+                      onChange={(event) => setWitchPoisonTargetId(event.target.value)}
+                      disabled={witchPoisonUsed}
+                    >
+                      <option value="">Giữ lại bình độc</option>
+                      {alivePlayers.map((player) => (
+                        <option key={player.id} value={player.id}>{player.name}</option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                <p className="offline-help">
+                  Mỗi bình chỉ dùng một lần trong cả ván. Phù Thủy có thể dùng cả hai bình trong cùng một đêm.
+                </p>
+              </section>
               {seerResult && (
                 <div className="offline-result">
                   Kết quả soi: <strong>{seerResult.name}</strong> là <strong>{seerResult.result}</strong>
@@ -352,16 +509,51 @@ export default function OfflineGamePage() {
           {phase === 'VOTING' && (
             <div className="space-y-5">
               <h2 className="offline-title">Bỏ phiếu treo cổ</h2>
-              <label className="offline-field">
-                Người bị treo cổ
-                <select value={voteTargetId} onChange={(event) => setVoteTargetId(event.target.value)}>
-                  <option value="">Không treo cổ ai</option>
-                  {alivePlayers.map((player) => (
-                    <option key={player.id} value={player.id}>{player.name}</option>
+              {!offlineVoteResult && (
+                <div className="offline-vote-entry">
+                  {alivePlayers.map((voter) => (
+                    <label key={voter.id} className="offline-field">
+                      Lá phiếu của {voter.name}
+                      <select
+                        value={offlineVotes[voter.id] || ''}
+                        onChange={(event) => setOfflineVotes((currentVotes) => {
+                          const nextVotes = { ...currentVotes };
+                          if (event.target.value) {
+                            nextVotes[voter.id] = event.target.value;
+                          } else {
+                            delete nextVotes[voter.id];
+                          }
+                          return nextVotes;
+                        })}
+                      >
+                        <option value="">Chưa bỏ phiếu</option>
+                        <option value="ABSTAIN">Không bỏ phiếu</option>
+                        {alivePlayers
+                          .filter((candidate) => candidate.id !== voter.id)
+                          .map((candidate) => (
+                            <option key={candidate.id} value={candidate.id}>{candidate.name}</option>
+                          ))}
+                      </select>
+                    </label>
                   ))}
-                </select>
-              </label>
-              <button type="button" onClick={finishVoting} className="offline-primary-button">Chốt bỏ phiếu</button>
+                </div>
+              )}
+
+              <VoteLedger
+                players={offlineLedgerPlayers}
+                voteResult={offlineVoteResult}
+                currentTurn={turn}
+              />
+
+              {offlineVoteResult ? (
+                <button type="button" onClick={continueAfterVoting} className="offline-primary-button">
+                  {winner !== 'NONE' ? 'Công bố phe chiến thắng' : 'Tiếp tục sang đêm'}
+                </button>
+              ) : (
+                <button type="button" onClick={finishVoting} className="offline-primary-button">
+                  Chốt và công bố phiếu
+                </button>
+              )}
             </div>
           )}
 

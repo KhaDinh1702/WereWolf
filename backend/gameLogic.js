@@ -2,37 +2,27 @@
  * Game logic functions for Werewolf Game
  */
 
+export const REQUIRED_PLAYER_COUNT = 8;
+export const FIXED_ROLE_DECK = [
+  'WEREWOLF',
+  'WEREWOLF',
+  'SEER',
+  'WITCH',
+  'BODYGUARD',
+  'VILLAGER',
+  'VILLAGER',
+  'VILLAGER'
+];
+
 /**
- * Assign roles to players based on the player count.
- * Roles: WEREWOLF, SEER, BODYGUARD, VILLAGER
+ * Assign the fixed eight-player role deck.
  */
-export const assignRoles = (players, hostId = null) => {
-  const playingPlayers = hostId ? players.filter(p => p.playerId !== hostId) : players;
-  const count = playingPlayers.length;
-  if (count < 4) {
-    throw new Error('Tối thiểu cần 4 người chơi (không tính Chủ phòng) để bắt đầu game.');
+export const assignRoles = (players) => {
+  if (players.length !== REQUIRED_PLAYER_COUNT) {
+    throw new Error(`Cần đúng ${REQUIRED_PLAYER_COUNT} người chơi để bắt đầu game.`);
   }
 
-  // Determine role counts
-  let werewolfCount = 1;
-  let seerCount = 1;
-  let bodyguardCount = 1;
-
-  if (count >= 6) {
-    werewolfCount = 2;
-  }
-  if (count >= 9) {
-    werewolfCount = 3;
-  }
-
-  const villagerCount = count - werewolfCount - seerCount - bodyguardCount;
-
-  // Build pool of roles
-  const rolesPool = [];
-  for (let i = 0; i < werewolfCount; i++) rolesPool.push('WEREWOLF');
-  for (let i = 0; i < seerCount; i++) rolesPool.push('SEER');
-  for (let i = 0; i < bodyguardCount; i++) rolesPool.push('BODYGUARD');
-  for (let i = 0; i < villagerCount; i++) rolesPool.push('VILLAGER');
+  const rolesPool = [...FIXED_ROLE_DECK];
 
   // Shuffle roles using Fisher-Yates
   for (let i = rolesPool.length - 1; i > 0; i--) {
@@ -40,38 +30,55 @@ export const assignRoles = (players, hostId = null) => {
     [rolesPool[i], rolesPool[j]] = [rolesPool[j], rolesPool[i]];
   }
 
-  // Assign to players
-  let poolIdx = 0;
-  return players.map((player) => {
-    if (hostId && player.playerId === hostId) {
-      return {
-        ...player,
-        role: 'HOST',
-        isAlive: false,
-        hasVoted: false,
-        voteTarget: null,
-        actionTarget: null,
-        roleActionDone: true
-      };
+  return players.map((player, index) => ({
+    ...player,
+    role: rolesPool[index],
+    isAlive: true,
+    hasVoted: false,
+    voteTarget: null,
+    actionTarget: null,
+    roleActionDone: false,
+    witchHealUsed: false,
+    witchPoisonUsed: false,
+    witchHealTarget: null,
+    witchPoisonTarget: null
+  }));
+};
+
+export const getWerewolfTargetId = (players) => {
+  const werewolves = players.filter(player => player.role === 'WEREWOLF' && player.isAlive);
+  if (werewolves.length === 0) return null;
+
+  const allWerewolvesChose = werewolves.every(player => player.roleActionDone || player.actionTarget);
+  if (!allWerewolvesChose) return null;
+
+  const targetCounts = {};
+  werewolves.forEach(player => {
+    if (player.actionTarget) {
+      targetCounts[player.actionTarget] = (targetCounts[player.actionTarget] || 0) + 1;
     }
-    const role = rolesPool[poolIdx++];
-    return {
-      ...player,
-      role,
-      isAlive: true,
-      hasVoted: false,
-      voteTarget: null,
-      actionTarget: null,
-      roleActionDone: false
-    };
   });
+
+  let maxVotes = 0;
+  let candidates = [];
+  Object.entries(targetCounts).forEach(([targetId, votes]) => {
+    if (votes > maxVotes) {
+      maxVotes = votes;
+      candidates = [targetId];
+    } else if (votes === maxVotes) {
+      candidates.push(targetId);
+    }
+  });
+
+  return candidates.length === 1 ? candidates[0] : null;
 };
 
 /**
  * Process actions taken during the night.
  * - Werewolves select a target to kill.
- * - Bodyguard selects a target to protect.
- * - Returns the id of the killed player (or null) and updated players list.
+ * - Bodyguard can block the werewolf attack.
+ * - Witch can save the werewolf victim and poison another player.
+ * - Returns every killed player id and the updated players list.
  */
 export const processNightActions = (players) => {
   const updatedPlayers = players.map(p => ({ ...p }));
@@ -80,34 +87,30 @@ export const processNightActions = (players) => {
   const bodyguard = updatedPlayers.find(p => p.role === 'BODYGUARD' && p.isAlive);
   const protectedPlayerId = bodyguard ? bodyguard.actionTarget : null;
 
-  // Find werewolf targets
-  const werewolves = updatedPlayers.find(p => p.role === 'WEREWOLF' && p.isAlive);
-  
-  let targetCounts = {};
-  updatedPlayers.forEach(p => {
-    if (p.role === 'WEREWOLF' && p.isAlive && p.actionTarget) {
-      targetCounts[p.actionTarget] = (targetCounts[p.actionTarget] || 0) + 1;
-    }
-  });
+  const witch = updatedPlayers.find(p => p.role === 'WITCH' && p.isAlive);
+  const werewolfTargetId = getWerewolfTargetId(updatedPlayers);
+  const wasSavedByWitch = Boolean(
+    werewolfTargetId
+    && witch?.witchHealTarget === werewolfTargetId
+    && witch.witchHealUsed
+  );
+  const killedPlayerIds = [];
 
-  // Find the target with maximum votes from werewolves
-  let werewolfTargetId = null;
-  let maxVotes = 0;
-  for (const [targetId, votes] of Object.entries(targetCounts)) {
-    if (votes > maxVotes) {
-      maxVotes = votes;
-      werewolfTargetId = targetId;
+  if (werewolfTargetId && werewolfTargetId !== protectedPlayerId && !wasSavedByWitch) {
+    const victim = updatedPlayers.find(p => p.playerId === werewolfTargetId);
+    if (victim?.isAlive) {
+      victim.isAlive = false;
+      killedPlayerIds.push(victim.playerId);
     }
   }
 
-  let killedPlayerId = null;
-  
-  // If werewolves picked someone and they are not protected by bodyguard, they die
-  if (werewolfTargetId && werewolfTargetId !== protectedPlayerId) {
-    const victim = updatedPlayers.find(p => p.playerId === werewolfTargetId);
-    if (victim && victim.isAlive) {
-      victim.isAlive = false;
-      killedPlayerId = werewolfTargetId;
+  if (witch?.witchPoisonTarget && witch.witchPoisonUsed) {
+    const poisonVictim = updatedPlayers.find(p => p.playerId === witch.witchPoisonTarget);
+    if (poisonVictim?.isAlive) {
+      poisonVictim.isAlive = false;
+      if (!killedPlayerIds.includes(poisonVictim.playerId)) {
+        killedPlayerIds.push(poisonVictim.playerId);
+      }
     }
   }
 
@@ -115,9 +118,17 @@ export const processNightActions = (players) => {
   updatedPlayers.forEach(p => {
     p.actionTarget = null;
     p.roleActionDone = false;
+    p.witchHealTarget = null;
+    p.witchPoisonTarget = null;
   });
 
-  return { killedPlayerId, players: updatedPlayers };
+  return {
+    killedPlayerId: killedPlayerIds[0] || null,
+    killedPlayerIds,
+    werewolfTargetId,
+    wasSavedByWitch,
+    players: updatedPlayers
+  };
 };
 
 /**
@@ -128,20 +139,24 @@ export const processNightActions = (players) => {
  */
 export const processVoting = (players) => {
   const updatedPlayers = players.map(p => ({ ...p }));
-  
+  const eligiblePlayers = updatedPlayers.filter(p => p.isAlive);
+  const playersById = new Map(updatedPlayers.map(p => [p.playerId, p]));
   const voteCounts = {};
-  let totalVotes = 0;
+  const ballots = eligiblePlayers.map(p => {
+    const target = p.voteTarget ? playersById.get(p.voteTarget) : null;
 
-  updatedPlayers.forEach(p => {
-    if (p.isAlive && p.voteTarget) {
+    if (target) {
       voteCounts[p.voteTarget] = (voteCounts[p.voteTarget] || 0) + 1;
-      totalVotes++;
     }
-  });
 
-  if (totalVotes === 0) {
-    return { votedOutPlayerId: null, players: updatedPlayers };
-  }
+    return {
+      voterPlayerId: p.playerId,
+      voterUsername: p.username,
+      targetPlayerId: target?.playerId || null,
+      targetUsername: target?.username || null
+    };
+  });
+  const totalVotes = ballots.filter(ballot => ballot.targetPlayerId).length;
 
   // Find max votes
   let maxVotes = 0;
@@ -167,13 +182,31 @@ export const processVoting = (players) => {
     }
   }
 
+  const tallies = eligiblePlayers
+    .map(player => ({
+      playerId: player.playerId,
+      username: player.username,
+      votes: voteCounts[player.playerId] || 0
+    }))
+    .sort((a, b) => b.votes - a.votes || a.username.localeCompare(b.username, 'vi'));
+
+  const voteResult = {
+    ballots,
+    tallies,
+    totalVotes,
+    eligibleVoters: eligiblePlayers.length,
+    votedOutPlayerId,
+    votedOutUsername: votedOutPlayerId ? playersById.get(votedOutPlayerId)?.username || null : null,
+    isTie: totalVotes > 0 && candidates.length > 1
+  };
+
   // Reset vote states for next round
   updatedPlayers.forEach(p => {
     p.hasVoted = false;
     p.voteTarget = null;
   });
 
-  return { votedOutPlayerId, players: updatedPlayers };
+  return { votedOutPlayerId, players: updatedPlayers, voteResult };
 };
 
 /**

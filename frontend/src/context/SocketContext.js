@@ -5,10 +5,21 @@ import { io } from 'socket.io-client';
 
 const SocketContext = createContext(null);
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:5000';
+const getSocketUrl = () => {
+  if (process.env.NEXT_PUBLIC_SOCKET_URL) {
+    return process.env.NEXT_PUBLIC_SOCKET_URL;
+  }
+
+  if (typeof window !== 'undefined') {
+    return `${window.location.protocol}//${window.location.hostname}:5000`;
+  }
+
+  return 'http://localhost:5000';
+};
+
 const socketInstance = typeof window === 'undefined'
   ? null
-  : io(SOCKET_URL, {
+  : io(getSocketUrl(), {
       autoConnect: false,
       reconnectionAttempts: 5,
       reconnectionDelay: 2000

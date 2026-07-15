@@ -14,12 +14,12 @@ const ROLES_INFO = [
     description:
       'Thế lực hắc ám ẩn mình trong lòng ngôi làng. Ban ngày hóa thân thành dân thường, ban đêm xé toạc sự yên bình bằng nanh vuốt đẫm máu.',
     ability:
-      'Ban đêm: Thức giấc cùng đồng bọn, bàn bạc qua kênh chat riêng và thống nhất chọn một nạn nhân để tàn sát trước khi bình minh ló dạng.',
+      'Ban đêm: Hai Sói bàn bạc qua kênh chat riêng rồi cùng chọn nạn nhân. Nếu mỗi Sói chọn một người khác nhau và số phiếu hòa, đêm đó phe Sói không chọn được nạn nhân.',
     winCondition:
       'Tiêu diệt dân làng cho tới khi số Sói bằng hoặc vượt số Dân Làng còn sống.',
     strategy:
       'Hòa mình vào đám đông, bắt chước lập luận hợp lý, và khéo léo hướng mũi nghi ngờ sang những người chơi lương thiện nhất.',
-    portrait: '/images/cards/wolf.png',
+    portrait: '/images/werewolf-card.png',
     portraitLabel: 'MA SÓI',
     accentColor: '#8b0000',
     accentGlow: 'rgba(139,0,0,0.6)',
@@ -38,14 +38,33 @@ const ROLES_INFO = [
     winCondition: 'Phe Dân Làng chiến thắng khi tiêu diệt hoàn toàn phe Ma Sói.',
     strategy:
       'Giữ kín thân phận Tiên Tri, dẫn dắt bỏ phiếu bằng thông tin đã soi được. Lộ bài quá sớm đồng nghĩa với cái chết.',
-    portrait: '/images/cards/prophet.png',
+    portrait: '/images/prophet-card.png',
     portraitLabel: 'TIÊN TRI',
     accentColor: '#c0bdb8',
     accentGlow: 'rgba(192,189,184,0.5)',
   },
   {
-    id: 'BODYGUARD',
+    id: 'WITCH',
     numeral: 'III',
+    title: 'PHÙ THỦY',
+    subtitle: 'Người giữ hai bình thuốc',
+    faction: 'Phe Dân Làng',
+    tagline: 'Một tay níu giữ sinh mệnh, một tay gieo rắc cái chết.',
+    description:
+      'Phù Thủy thức dậy sau Ma Sói và biết nạn nhân chúng đã chọn. Cô sở hữu hai bình thuốc duy nhất, đủ sức đảo ngược kết cục của cả một đêm.',
+    ability:
+      'Ban đêm: Có thể dùng bình cứu để cứu nạn nhân của Sói, kể cả chính mình, và bình độc để giết một người bất kỳ. Mỗi bình chỉ dùng một lần trong cả ván; có thể dùng cả hai trong cùng một đêm hoặc giữ lại.',
+    winCondition: 'Phe Dân Làng chiến thắng khi tiêu diệt hoàn toàn phe Ma Sói.',
+    strategy:
+      'Đừng vội dùng thuốc. Hãy cân nhắc giá trị của nạn nhân, diễn biến bỏ phiếu và thời điểm bình độc có thể kết thúc ván đấu.',
+    portrait: '/images/witch-card.png',
+    portraitLabel: 'PHÙ THỦY',
+    accentColor: '#b8893f',
+    accentGlow: 'rgba(180,45,30,0.5)',
+  },
+  {
+    id: 'BODYGUARD',
+    numeral: 'IV',
     title: 'BẢO VỆ',
     subtitle: 'Người canh giữ',
     faction: 'Phe Dân Làng',
@@ -57,14 +76,14 @@ const ROLES_INFO = [
     winCondition: 'Phe Dân Làng chiến thắng khi tiêu diệt hoàn toàn phe Ma Sói.',
     strategy:
       'Phán đoán ai sẽ bị nhắm tới — thường là Tiên Tri hoặc người lên tiếng mạnh nhất ban ngày — và bảo vệ họ đúng thời điểm.',
-    portrait: '/images/cards/guardian.png',
+    portrait: '/images/protector-card.png',
     portraitLabel: 'BẢO VỆ',
     accentColor: '#a8a5a0',
     accentGlow: 'rgba(168,165,160,0.5)',
   },
   {
     id: 'VILLAGER',
-    numeral: 'IV',
+    numeral: 'V',
     title: 'DÂN LÀNG',
     subtitle: 'Người dân',
     faction: 'Phe Dân Làng',
@@ -76,7 +95,7 @@ const ROLES_INFO = [
     winCondition: 'Phe Dân Làng chiến thắng khi tiêu diệt hoàn toàn phe Ma Sói.',
     strategy:
       'Quan sát kỹ hành vi bỏ phiếu và lập luận. Kẻ nói nhiều nhưng nói vòng vo thường là Sói đang cố thoát thân.',
-    portrait: '/images/cards/villager.png',
+    portrait: '/images/villager-card.png',
     portraitLabel: 'DÂN LÀNG',
     accentColor: '#888480',
     accentGlow: 'rgba(136,132,128,0.5)',
@@ -163,7 +182,7 @@ export default function AboutModal({ isOpen, onClose }) {
           <button
             onClick={onClose}
             className="text-zinc-600 hover:text-zinc-200 transition-colors text-lg font-light w-7 h-7 flex items-center justify-center"
-            style={{ fontFamily: 'sans-serif' }}
+            style={{ fontFamily: 'var(--font-ui)' }}
           >
             ✕
           </button>

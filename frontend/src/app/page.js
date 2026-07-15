@@ -97,10 +97,10 @@ export default function LobbyPage() {
   };
 
   return (
-    <div className="bg-background text-on-background h-screen flex flex-col md:flex-row font-body-gothic textured-bg overflow-hidden">
+    <div className="landing-shell bg-background text-on-background h-screen flex flex-col md:flex-row font-body-gothic textured-bg overflow-hidden">
 
       {/* Main Canvas (Left Area) */}
-      <main className="ritual-stage flex-grow flex flex-col relative overflow-hidden border-b-4 md:border-b-0 md:border-r-4 border-secondary demonic-bg justify-center p-8 z-10 h-1/2 md:h-full">
+      <main className="landing-stage ritual-stage flex-grow flex flex-col relative overflow-hidden border-b-4 md:border-b-0 md:border-r-4 border-secondary demonic-bg justify-center p-8 z-10 h-1/2 md:h-full">
         <div className="ritual-vignette" aria-hidden="true" />
         <div className="ritual-moonlight" aria-hidden="true" />
         <div className="ritual-sigil" aria-hidden="true" />
@@ -139,7 +139,7 @@ export default function LobbyPage() {
 
       {/* SideNavBar Component (Right Side) */}
       <aside
-        className="border-t-2 md:border-t-0 md:border-l-2 border-outline-variant w-full md:w-[400px] flex flex-col h-1/2 md:h-full py-6 md:py-12 overflow-y-auto shrink-0 z-40 relative shadow-[inset_0_0_100px_rgba(0,0,0,0.95)]"
+        className="landing-panel border-t-2 md:border-t-0 md:border-l-2 border-outline-variant w-full md:w-[400px] flex flex-col h-1/2 md:h-full py-6 md:py-12 overflow-y-auto shrink-0 z-40 relative shadow-[inset_0_0_100px_rgba(0,0,0,0.95)]"
         style={{
           backgroundImage: "linear-gradient(rgba(10, 0, 0, 0.5), rgba(10, 0, 0, 0.7)), url('/images/sidebar_texture.png')",
           backgroundSize: 'cover',

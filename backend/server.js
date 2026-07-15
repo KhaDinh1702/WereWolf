@@ -4,7 +4,14 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { connectDB, Room } from './db.js';
-import { assignRoles, processNightActions, processVoting, checkVictory } from './gameLogic.js';
+import {
+  assignRoles,
+  processNightActions,
+  processVoting,
+  checkVictory,
+  getWerewolfTargetId,
+  REQUIRED_PLAYER_COUNT
+} from './gameLogic.js';
 import { getQuestionsForTurn } from './questionsData.js';
 
 dotenv.config();
@@ -29,6 +36,7 @@ const io = new Server(httpServer, {
 const ROLE_LABELS = {
   WEREWOLF: 'Ma Sói',
   SEER: 'Tiên Tri',
+  WITCH: 'Phù Thủy',
   BODYGUARD: 'Bảo Vệ',
   VILLAGER: 'Dân Làng',
   HOST: 'Quản Trò',
@@ -74,6 +82,26 @@ const sanitizeRoomState = (room, playerId) => {
     return roomObj;
   }
 
+  // The Host is the moderator, not a player, and needs the complete state to run the game.
+  if (viewer.playerId === roomObj.hostId || viewer.role === 'HOST') {
+    return roomObj;
+  }
+
+  if (roomObj.currentPhase === 'NIGHT' && viewer.role === 'WITCH') {
+    const aliveWerewolves = roomObj.players.filter(player => player.role === 'WEREWOLF' && player.isAlive);
+    const werewolvesReady = aliveWerewolves.length > 0
+      && aliveWerewolves.every(player => player.roleActionDone);
+    const victimId = werewolvesReady ? getWerewolfTargetId(roomObj.players) : null;
+    const victim = victimId
+      ? roomObj.players.find(player => player.playerId === victimId)
+      : null;
+
+    roomObj.witchNight = {
+      werewolvesReady,
+      victim: victim ? { playerId: victim.playerId, username: victim.username } : null
+    };
+  }
+
   // If game is active, hide roles
   roomObj.players = roomObj.players.map(player => {
     // Keep viewer's role
@@ -82,7 +110,13 @@ const sanitizeRoomState = (room, playerId) => {
     }
     // Dead players have their roles revealed
     if (!player.isAlive) {
-      return player;
+      return {
+        ...player,
+        actionTarget: null,
+        roleActionDone: false,
+        witchHealTarget: null,
+        witchPoisonTarget: null
+      };
     }
     // Werewolves can see other werewolves
     if (viewer.role === 'WEREWOLF' && player.role === 'WEREWOLF') {
@@ -91,7 +125,13 @@ const sanitizeRoomState = (room, playerId) => {
     // Otherwise, obscure role
     return {
       ...player,
-      role: 'NONE'
+      role: 'NONE',
+      actionTarget: null,
+      roleActionDone: false,
+      witchHealUsed: false,
+      witchPoisonUsed: false,
+      witchHealTarget: null,
+      witchPoisonTarget: null
     };
   });
 
@@ -120,6 +160,7 @@ const broadcastRoomState = async (roomId) => {
 
 // Map to track timers for each room
 const activeTimers = new Map();
+const VOTE_RESULT_DISPLAY_SECONDS = 8;
 
 /**
  * Helper: Manages phase timers and advances phase automatically on timeout
@@ -212,8 +253,8 @@ io.on('connection', (socket) => {
           playerId,
           username,
           socketId: socket.id,
-          role: 'NONE',
-          isAlive: true
+          role: 'HOST',
+          isAlive: false
         }],
         currentPhase: 'NONE',
         currentTurn: 0
@@ -251,6 +292,14 @@ io.on('connection', (socket) => {
 
       // Check if player is already in room (handle reconnect/tab refresh)
       let player = room.players.find(p => p.playerId === playerId);
+      const playingPlayerCount = room.players.filter(p => p.playerId !== room.hostId).length;
+
+      if (!player && playingPlayerCount >= REQUIRED_PLAYER_COUNT) {
+        return callback({
+          success: false,
+          error: `Phòng đã đủ ${REQUIRED_PLAYER_COUNT} người chơi và 1 quản trò.`
+        });
+      }
       
       if (player) {
         player.socketId = socket.id;
@@ -294,17 +343,40 @@ io.on('connection', (socket) => {
         return socket.emit('error_message', 'Chỉ có chủ phòng mới khởi động được game.');
       }
 
-      const nonHostCount = room.players.filter(p => p.playerId !== room.hostId).length;
-      if (nonHostCount < 4) {
-        return socket.emit('error_message', 'Tối thiểu cần 4 người chơi (không tính Chủ phòng) để bắt đầu game.');
+      const playingPlayers = room.players.filter(player => player.playerId !== room.hostId);
+      if (playingPlayers.length !== REQUIRED_PLAYER_COUNT) {
+        return socket.emit(
+          'error_message',
+          `Cần đúng ${REQUIRED_PLAYER_COUNT} người chơi, không tính quản trò, để bắt đầu game.`
+        );
       }
 
-      // Assign roles
-      const playersWithRoles = assignRoles(room.players.map(p => p.toObject()), room.hostId);
-      room.players = playersWithRoles;
+      // Assign the fixed deck to eight players. The Host remains a non-playing moderator.
+      const assignedPlayers = assignRoles(playingPlayers.map(player => player.toObject()));
+      const assignedPlayersById = new Map(assignedPlayers.map(player => [player.playerId, player]));
+      room.players = room.players.map(player => {
+        if (player.playerId === room.hostId) {
+          return {
+            ...player.toObject(),
+            role: 'HOST',
+            isAlive: false,
+            hasVoted: false,
+            voteTarget: null,
+            actionTarget: null,
+            roleActionDone: true,
+            witchHealUsed: false,
+            witchPoisonUsed: false,
+            witchHealTarget: null,
+            witchPoisonTarget: null
+          };
+        }
+
+        return assignedPlayersById.get(player.playerId);
+      });
       room.status = 'PLAYING';
       room.currentPhase = 'NIGHT';
       room.currentTurn = 1;
+      room.lastVoteResult = null;
       room.logs.push({
         turn: 1,
         phase: 'SYSTEM',
@@ -335,7 +407,9 @@ io.on('connection', (socket) => {
       // Reset night actions
       room.players.forEach(p => {
         p.actionTarget = null;
-        p.roleActionDone = false;
+        p.roleActionDone = p.role === 'WITCH' && p.witchHealUsed && p.witchPoisonUsed;
+        p.witchHealTarget = null;
+        p.witchPoisonTarget = null;
       });
       await room.save();
 
@@ -355,6 +429,20 @@ io.on('connection', (socket) => {
       if (!room || room.hostId !== playerId) return;
 
       if (room.currentPhase === 'NIGHT') {
+        const pendingNightPlayers = room.players.filter(player => (
+          player.isAlive
+          && ['WEREWOLF', 'SEER', 'WITCH', 'BODYGUARD'].includes(player.role)
+          && !player.roleActionDone
+        ));
+
+        if (pendingNightPlayers.length > 0) {
+          socket.emit(
+            'error_message',
+            `Chưa thể kết thúc đêm. Còn ${pendingNightPlayers.length} vai đặc biệt chưa hành động.`
+          );
+          return;
+        }
+
         clearPhaseTimer(roomId);
         endNightPhase(roomId);
       } else if (room.currentPhase === 'DAY') {
@@ -425,7 +513,8 @@ io.on('connection', (socket) => {
       if (!room || room.currentPhase !== 'NIGHT') return;
 
       const player = room.players.find(p => p.playerId === playerId);
-      if (!player || !player.isAlive || player.role === 'VILLAGER') return;
+      if (!player || !player.isAlive) return;
+      if (!['WEREWOLF', 'SEER', 'BODYGUARD'].includes(player.role)) return;
       if (player.roleActionDone) return;
 
       const target = room.players.find(p => p.playerId === targetPlayerId);
@@ -451,19 +540,62 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('witch_action', async ({ roomId, playerId, useHeal = false, poisonTargetId = null }) => {
+    try {
+      const room = await Room.findOne({ roomId });
+      if (!room || room.currentPhase !== 'NIGHT') return;
+
+      const witch = room.players.find(player => player.playerId === playerId);
+      if (!witch || !witch.isAlive || witch.role !== 'WITCH' || witch.roleActionDone) return;
+
+      const aliveWerewolves = room.players.filter(player => player.role === 'WEREWOLF' && player.isAlive);
+      const werewolvesReady = aliveWerewolves.length > 0
+        && aliveWerewolves.every(player => player.roleActionDone);
+      if (!werewolvesReady) {
+        return socket.emit('error_message', 'Hãy chờ Ma Sói hoàn tất lựa chọn trước khi dùng bình thuốc.');
+      }
+
+      const werewolfTargetId = getWerewolfTargetId(room.players.map(player => player.toObject()));
+
+      if (useHeal) {
+        if (witch.witchHealUsed || !werewolfTargetId) return;
+        witch.witchHealUsed = true;
+        witch.witchHealTarget = werewolfTargetId;
+      }
+
+      if (poisonTargetId) {
+        if (witch.witchPoisonUsed) return;
+        const poisonTarget = room.players.find(player => player.playerId === poisonTargetId);
+        if (!poisonTarget?.isAlive) return;
+        witch.witchPoisonUsed = true;
+        witch.witchPoisonTarget = poisonTarget.playerId;
+      }
+
+      witch.roleActionDone = true;
+      await room.save();
+      broadcastRoomState(roomId);
+    } catch (error) {
+      console.error('Witch action error:', error);
+    }
+  });
+
   // End Night Phase
   const endNightPhase = async (roomId) => {
     try {
       const room = await Room.findOne({ roomId });
       if (!room) return;
 
-      const { killedPlayerId, players: nextPlayers } = processNightActions(room.players.map(p => p.toObject()));
+      const { killedPlayerIds, players: nextPlayers } = processNightActions(room.players.map(p => p.toObject()));
       room.players = nextPlayers;
 
       let logMessage = '';
-      if (killedPlayerId) {
-        const victim = room.players.find(p => p.playerId === killedPlayerId);
-        logMessage = `Đêm qua, ${victim.username} đã bị Ma Sói cắn chết.`;
+      if (killedPlayerIds.length > 0) {
+        const victimNames = killedPlayerIds
+          .map(killedPlayerId => room.players.find(player => player.playerId === killedPlayerId)?.username)
+          .filter(Boolean);
+        logMessage = victimNames.length === 1
+          ? `Đêm qua, ${victimNames[0]} đã chết trong bóng tối.`
+          : `Đêm qua, ${victimNames.join(' và ')} đã chết trong bóng tối.`;
       } else {
         logMessage = 'Một đêm trôi qua bình yên, không ai chết.';
       }
@@ -509,6 +641,7 @@ io.on('connection', (socket) => {
       if (!room) return;
 
       room.currentPhase = 'VOTING';
+      room.lastVoteResult = null;
       // Reset votes
       room.players.forEach(p => {
         p.hasVoted = false;
@@ -530,6 +663,7 @@ io.on('connection', (socket) => {
     try {
       const room = await Room.findOne({ roomId });
       if (!room || room.currentPhase !== 'VOTING') return;
+      if (room.lastVoteResult?.turn === room.currentTurn) return;
 
       const player = room.players.find(p => p.playerId === playerId);
       if (!player || !player.isAlive) return;
@@ -557,30 +691,12 @@ io.on('connection', (socket) => {
     }
   });
 
-  // End Voting Phase
-  const endVotingPhase = async (roomId) => {
+  const finalizeVotingPhase = async (roomId) => {
     try {
       const room = await Room.findOne({ roomId });
-      if (!room) return;
+      if (!room || room.currentPhase !== 'VOTING') return;
+      if (room.lastVoteResult?.turn !== room.currentTurn) return;
 
-      const { votedOutPlayerId, players: nextPlayers } = processVoting(room.players.map(p => p.toObject()));
-      room.players = nextPlayers;
-
-      let logMessage = '';
-      if (votedOutPlayerId) {
-        const victim = room.players.find(p => p.playerId === votedOutPlayerId);
-        logMessage = `Dân làng đã treo cổ ${victim.username} (vai trò: ${getRoleLabel(victim.role)}).`;
-      } else {
-        logMessage = 'Không có ai bị treo cổ trong ngày hôm nay do số phiếu bằng nhau hoặc không ai vote.';
-      }
-
-      room.logs.push({
-        turn: room.currentTurn,
-        phase: 'VOTING',
-        action: logMessage
-      });
-
-      // Check victory
       const winner = checkVictory(room.players, room.currentTurn, room.currentPhase);
       if (winner !== 'NONE') {
         room.status = 'FINISHED';
@@ -595,13 +711,59 @@ io.on('connection', (socket) => {
         return;
       }
 
-      // Next Night
       room.currentPhase = 'NIGHT';
       room.currentTurn += 1;
       await room.save();
       broadcastRoomState(roomId);
-
       triggerNightPhase(roomId);
+    } catch (error) {
+      console.error('Finalize voting phase error:', error);
+    }
+  };
+
+  // End Voting Phase and publicly reveal the complete ballot before moving on.
+  const endVotingPhase = async (roomId) => {
+    try {
+      const room = await Room.findOne({ roomId });
+      if (!room || room.currentPhase !== 'VOTING') return;
+
+      if (room.lastVoteResult?.turn === room.currentTurn) {
+        await finalizeVotingPhase(roomId);
+        return;
+      }
+
+      const {
+        votedOutPlayerId,
+        players: nextPlayers,
+        voteResult
+      } = processVoting(room.players.map(p => p.toObject()));
+      room.players = nextPlayers;
+      room.lastVoteResult = {
+        ...voteResult,
+        turn: room.currentTurn,
+        resolvedAt: new Date()
+      };
+
+      let logMessage = '';
+      if (votedOutPlayerId) {
+        const victim = room.players.find(p => p.playerId === votedOutPlayerId);
+        logMessage = `Dân làng đã treo cổ ${victim.username} (vai trò: ${getRoleLabel(victim.role)}).`;
+      } else {
+        logMessage = 'Không có ai bị treo cổ trong ngày hôm nay do số phiếu bằng nhau hoặc không ai bỏ phiếu.';
+      }
+
+      room.logs.push({
+        turn: room.currentTurn,
+        phase: 'VOTING',
+        action: logMessage
+      });
+
+      await room.save();
+      broadcastRoomState(roomId);
+
+      startPhaseTimer(roomId, VOTE_RESULT_DISPLAY_SECONDS, () => {
+        finalizeVotingPhase(roomId);
+      });
     } catch (error) {
       console.error('End voting phase error:', error);
     }
@@ -625,7 +787,13 @@ io.on('connection', (socket) => {
       };
 
       // Rules for chat:
-      // 1. If player is dead, they can only chat to other dead players (or spectate)
+      // 1. The Host is the moderator and can make public announcements in every phase.
+      if (player.playerId === room.hostId || player.role === 'HOST') {
+        io.to(roomId).emit('receive_message', { ...messagePayload, isHostMessage: true });
+        return;
+      }
+
+      // 2. If player is dead, they can only chat to other dead players (or spectate)
       if (!player.isAlive) {
         room.players.forEach(p => {
           if (!p.isAlive && p.socketId) {
@@ -635,7 +803,7 @@ io.on('connection', (socket) => {
         return;
       }
 
-      // 2. If it is Night, only Werewolves can chat with other Werewolves
+      // 3. If it is Night, only Werewolves can chat with other Werewolves
       if (room.currentPhase === 'NIGHT') {
         if (player.role === 'WEREWOLF') {
           room.players.forEach(p => {
@@ -648,7 +816,7 @@ io.on('connection', (socket) => {
         return;
       }
 
-      // 3. In other phases (DAY, VOTING, LOBBY), everyone alive can chat publicly
+      // 4. In other phases (DAY, VOTING, LOBBY), everyone alive can chat publicly
       io.to(roomId).emit('receive_message', messagePayload);
     } catch (error) {
       console.error('Send message error:', error);
