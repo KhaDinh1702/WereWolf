@@ -609,8 +609,8 @@ export default function GameRoomPage() {
 
           {/* Playing Screen / Finished Screen (Players Grid) */}
           {room.status !== 'LOBBY' && (
-            <div className="flex-grow flex flex-col">
-              <div className="night-player-grid grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 flex-grow content-start">
+            <div className="flex-grow flex flex-col pb-24">
+              <div className="night-player-grid flex flex-wrap justify-center items-stretch gap-4 md:gap-6 flex-grow content-start">
                 {room.players.map((player) => {
                   const isPlayerSelf = player.playerId === playerId;
                   const isAlive = player.isAlive;

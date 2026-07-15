@@ -2157,6 +2157,7 @@ select {
   position: relative;
   isolation: isolate;
   display: flex;
+  width: clamp(150px, 15vw, 220px);
   min-height: 160px;
   flex-direction: column;
   justify-content: space-between;
