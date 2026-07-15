@@ -1,13 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
 
 const OPTION_THEMES = [
-  { key: 'A', bg: 'bg-gradient-to-r from-red-950 via-red-900 to-red-950', hover: 'hover:from-red-900 hover:to-red-850', border: 'border-red-700/80', labelBg: 'bg-red-950 border border-red-600/60', shape: '▲' },
-  { key: 'B', bg: 'bg-gradient-to-r from-red-900 via-[#24080a] to-red-950', hover: 'hover:from-red-850 hover:to-red-900', border: 'border-red-700/80', labelBg: 'bg-red-950 border border-red-600/60', shape: '◆' },
-  { key: 'C', bg: 'bg-gradient-to-r from-[#24080a] via-red-950 to-red-900', hover: 'hover:from-red-900 hover:to-[#2b0a0d]', border: 'border-red-700/80', labelBg: 'bg-red-950 border border-red-600/60', shape: '●' },
-  { key: 'D', bg: 'bg-gradient-to-r from-red-950 via-[#1c0709] to-red-900', hover: 'hover:from-[#2b0a0d] hover:to-red-900', border: 'border-red-700/80', labelBg: 'bg-red-950 border border-red-600/60', shape: '■' }
+  { key: 'A', bg: 'bg-red-950', hover: 'hover:bg-red-900', border: 'border-red-700/80', labelBg: 'bg-red-900 border border-red-600/60', shape: 'A' },
+  { key: 'B', bg: 'bg-[#24080a]', hover: 'hover:bg-[#2b0a0d]', border: 'border-red-700/80', labelBg: 'bg-red-900 border border-red-600/60', shape: 'B' },
+  { key: 'C', bg: 'bg-[#2b0a0d]', hover: 'hover:bg-[#340c10]', border: 'border-red-700/80', labelBg: 'bg-red-900 border border-red-600/60', shape: 'C' },
+  { key: 'D', bg: 'bg-[#1c0709]', hover: 'hover:bg-[#24080a]', border: 'border-red-700/80', labelBg: 'bg-red-900 border border-red-600/60', shape: 'D' }
 ];
 
 export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onAdvancePhase }) {
@@ -28,8 +27,8 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
 
   const isNight = room.currentPhase === 'NIGHT';
   const isDayOrVote = room.currentPhase === 'DAY' || room.currentPhase === 'VOTING';
-  const phaseLogo = isNight ? '/images/night-logo.png' : isDayOrVote ? '/images/day-logo.png' : '/images/werewolf-logo-small.png';
-  const phaseBgImage = isNight ? '/images/night.png' : isDayOrVote ? '/images/day.png' : null;
+  
+  const phaseEmoji = isNight ? '🌙' : room.currentPhase === 'DAY' ? '☀️' : '⚖️';
 
   const handleOptionClick = (key) => {
     if (!currentQuestion) return;
@@ -56,31 +55,21 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
 
   return (
     <div 
-      className="fixed inset-0 z-50 text-white flex flex-col font-body-gothic overflow-hidden select-none animate-fade-in bg-cover bg-center bg-no-repeat transition-all duration-700"
-      style={{ backgroundImage: "url('/images/sidebar_texture1.png')" }}
+      className="fixed inset-0 z-50 text-white flex flex-col font-body-gothic overflow-hidden select-none animate-fade-in bg-[#0f0506] transition-all duration-700"
     >
-      {/* Dynamic Day/Night ambient background overlay */}
-      {phaseBgImage && (
-        <div 
-          className="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-overlay transition-opacity duration-1000 pointer-events-none"
-          style={{ backgroundImage: `url('${phaseBgImage}')` }}
-        />
-      )}
-
       {/* Dark overlay & Red Glow effects for atmosphere */}
-      <div className="absolute inset-0 bg-black/60 backdrop-brightness-75 pointer-events-none" />
       <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-red-950/40 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-red-900/20 rounded-full blur-3xl pointer-events-none" />
 
       {/* Top Header Bar */}
-      <header className="shrink-0 bg-[#120709]/95 border-b border-red-900/60 px-6 py-4 flex items-center justify-between shadow-2xl relative z-10">
+      <header className="shrink-0 bg-[#120709] border-b border-red-900/60 px-6 py-4 flex items-center justify-between shadow-2xl relative z-10">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-red-950 border border-red-700/60 flex items-center justify-center p-1.5 shadow-md">
-              <Image src="/images/werewolf-logo-small.png" alt="" width={28} height={28} />
+            <div className="w-10 h-10 rounded-full bg-red-950 border border-red-700/60 flex items-center justify-center p-1.5 shadow-md text-xl">
+              🐺
             </div>
             <div>
-              <h1 className="font-extrabold text-xl tracking-wider text-[#e9c349] uppercase blood-glow">
+              <h1 className="font-extrabold text-xl tracking-wider text-[#e9c349] uppercase">
                 HOST VIEW - SÂN CHƠI MA SÓI
               </h1>
               <p className="text-xs text-red-300/80">
@@ -93,7 +82,7 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
         {/* Phase & Live Timer Badge */}
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2.5 bg-red-950/80 border border-red-800/60 px-4 py-1.5 rounded-full shadow-md">
-            <Image src={phaseLogo} alt="" width={24} height={24} className="shrink-0" />
+            <span className="text-lg">{phaseEmoji}</span>
             <span className="text-sm font-semibold text-red-200/80">Giai đoạn:</span>
             <span className="font-bold text-[#e9c349] uppercase text-sm">
               {room.status === 'LOBBY' ? 'SẢNH CHỜ' : room.status === 'FINISHED' ? 'KẾT THÚC' : room.currentPhase === 'NIGHT' ? 'BAN ĐÊM' : room.currentPhase === 'DAY' ? 'BAN NGÀY' : 'BIỂU QUYẾT'}
@@ -109,7 +98,7 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
 
           <button
             onClick={onCloseHostView}
-            className="bg-red-950/90 hover:bg-red-900 border border-red-700/60 text-red-100 hover:text-white px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 uppercase tracking-wider blood-glow-box"
+            className="bg-red-950 hover:bg-red-900 border border-red-700/60 text-red-100 hover:text-white px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 uppercase tracking-wider"
           >
             <span>✕ THOÁT MÀN HÌNH HOST</span>
           </button>
@@ -120,11 +109,11 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
       <div className="flex-grow grid grid-cols-12 gap-6 p-6 relative z-10 overflow-hidden">
         
         {/* Left Side: Survival Roster / Logs Switcher */}
-        <section className="col-span-4 bg-[#14080b]/90 border border-red-900/50 rounded-2xl p-5 flex flex-col backdrop-blur-md shadow-xl overflow-hidden">
+        <section className="col-span-4 bg-[#14080b] border border-red-900/50 rounded-2xl p-5 flex flex-col shadow-xl overflow-hidden">
           
           {/* Header Switcher */}
           <div className="shrink-0 flex items-center justify-between border-b border-red-900/50 pb-4 mb-4">
-            <div className="flex items-center gap-2 bg-red-950/80 p-1 rounded-xl border border-red-900/60">
+            <div className="flex items-center gap-2 bg-red-950 p-1 rounded-xl border border-red-900/60">
               <button
                 onClick={() => setLeftTab('survival')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
@@ -159,8 +148,8 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
                   key={p.playerId}
                   className={`p-3 rounded-xl border flex items-center justify-between transition-all ${
                     p.isAlive 
-                      ? 'bg-gradient-to-r from-red-950/60 to-[#1e0a0d]/60 border-red-900/40 text-white' 
-                      : 'bg-zinc-950/70 border-zinc-800/60 text-zinc-400 opacity-60'
+                      ? 'bg-red-950/60 border-red-900/40 text-white' 
+                      : 'bg-zinc-950 border-zinc-800/60 text-zinc-400 opacity-60'
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -215,7 +204,7 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
         </section>
 
         {/* Right Side: Night Quiz Broadcast */}
-        <section className="col-span-8 bg-[#14080b]/90 border border-red-900/50 rounded-2xl p-6 flex flex-col backdrop-blur-xl shadow-2xl relative overflow-hidden">
+        <section className="col-span-8 bg-[#14080b] border border-red-900/50 rounded-2xl p-6 flex flex-col shadow-2xl relative overflow-hidden">
           
           {/* Header & Question Selectors */}
           <div className="shrink-0 flex items-center justify-between border-b border-red-900/50 pb-4 mb-4">
@@ -251,7 +240,7 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
             <div className="flex-grow flex flex-col justify-between">
               
               {/* Question Text Box */}
-              <div className="bg-gradient-to-r from-red-950/90 via-[#1c090c] to-red-950/90 border-2 border-red-800/60 rounded-2xl p-6 shadow-2xl text-center relative overflow-hidden">
+              <div className="bg-[#1c090c] border-2 border-red-800/60 rounded-2xl p-6 shadow-2xl text-center relative overflow-hidden">
                 <span className="absolute top-2 left-4 text-[10px] font-mono tracking-widest text-red-300/80 font-bold uppercase">
                   CÂU {selectedQuestionIndex + 1} / {nightQuestions.length}
                 </span>
@@ -275,7 +264,7 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
                       )}
                     </div>
                   ) : (wrongOptions[currentQuestion.id] || []).length > 0 ? (
-                    <span className="text-red-400 font-bold text-xs bg-red-950/90 border border-red-800/60 px-3 py-1 rounded-full">
+                    <span className="text-red-400 font-bold text-xs bg-red-950 border border-red-800/60 px-3 py-1 rounded-full">
                       ❌ Đáp án vừa chọn chưa đúng (Đã khóa). Hãy chọn lại!
                     </span>
                   ) : null}
@@ -284,12 +273,12 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
                     nightQuestions.length > 0 && nightQuestions.every(q => correctAnswersFound[q.id]) ? (
                       <button
                         onClick={onAdvancePhase}
-                        className="px-6 py-2.5 rounded-full bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-black text-xs border-2 border-yellow-200 shadow-2xl cursor-pointer transition-all flex items-center gap-2 uppercase tracking-wider blood-glow-box hover:scale-105 animate-pulse"
+                        className="px-6 py-2.5 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs border-2 border-yellow-200 shadow-2xl cursor-pointer transition-all flex items-center gap-2 uppercase tracking-wider hover:scale-105 animate-pulse"
                       >
                         <span>☀️ BẮT ĐẦU BAN NGÀY (ĐÃ HOÀN THÀNH 2/2 CÂU)</span>
                       </button>
                     ) : (
-                      <div className="px-5 py-2 rounded-full bg-red-950/90 border border-red-800/80 text-red-300 font-bold text-xs uppercase tracking-wider shadow-md">
+                      <div className="px-5 py-2 rounded-full bg-red-950 border border-red-800/80 text-red-300 font-bold text-xs uppercase tracking-wider shadow-md">
                         🔒 CẦN TRẢ LỜI ĐÚNG CẢ 2 CÂU ĐỂ MỞ BAN NGÀY (ĐÃ ĐÚNG: {nightQuestions.filter(q => correctAnswersFound[q.id]).length}/{nightQuestions.length})
                       </div>
                     )
@@ -297,7 +286,7 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
                 </div>
               </div>
 
-              {/* Options Grid (Host directly clicks options: wrong locks, correct reveals) */}
+              {/* Options Grid */}
               <div className="grid grid-cols-2 gap-4 my-4">
                 {currentQuestion.options.map((opt, i) => {
                   const theme = OPTION_THEMES[i % OPTION_THEMES.length];
@@ -311,9 +300,9 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
                       onClick={() => handleOptionClick(theme.key)}
                       className={`relative p-5 rounded-2xl border-2 transition-all duration-300 shadow-xl flex flex-col justify-between overflow-hidden ${
                         isWrong
-                          ? 'bg-zinc-950/90 border-red-950/80 opacity-40 grayscale cursor-not-allowed'
+                          ? 'bg-zinc-950 border-red-950 opacity-40 grayscale cursor-not-allowed'
                           : isCorrect
-                            ? 'bg-gradient-to-r from-emerald-950 via-emerald-900 to-emerald-950 border-emerald-400 ring-4 ring-yellow-400 scale-[1.02] shadow-2xl'
+                            ? 'bg-emerald-900 border-emerald-400 ring-4 ring-yellow-400 scale-[1.02] shadow-2xl'
                             : `${theme.bg} ${theme.border} cursor-pointer hover:scale-[1.02] active:scale-[0.98]`
                       }`}
                     >
@@ -333,7 +322,7 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
                       </p>
 
                       {isWrong && (
-                        <div className="absolute top-3 right-3 bg-red-950 text-red-400 border border-red-800/80 font-black text-[11px] px-3 py-1 rounded-full uppercase tracking-wider z-20 shadow-md">
+                        <div className="absolute top-3 right-3 bg-red-950 text-red-400 border border-red-800 font-black text-[11px] px-3 py-1 rounded-full uppercase tracking-wider z-20 shadow-md">
                           🔒 CHƯA ĐÚNG ❌
                         </div>
                       )}
@@ -352,7 +341,7 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
           ) : (
             <div className="flex-grow flex items-center justify-center text-center p-8 text-red-200/90">
               <div>
-                <Image src={phaseLogo} alt="" width={48} height={48} className="mx-auto mb-2 opacity-80" />
+                <span className="text-5xl block mx-auto mb-2 opacity-80">{phaseEmoji}</span>
                 <p className="font-bold text-lg text-[#e9c349]">
                   {isNight ? 'Chưa có câu hỏi trắc nghiệm nào cho đêm này.' : 'Đang trong thời gian thảo luận ban ngày.'}
                 </p>
@@ -368,3 +357,4 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
     </div>
   );
 }
+
