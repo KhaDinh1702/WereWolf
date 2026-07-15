@@ -187,7 +187,7 @@ export const processVoting = (players) => {
  *   (2) OR currentTurn >= 4 (Max 4 nights / After 3 nights if wolves haven't won, Villagers win!)
  * Returns 'WEREWOLF', 'VILLAGER', or 'NONE'
  */
-export const checkVictory = (players, currentTurn = 1) => {
+export const checkVictory = (players, currentTurn = 1, currentPhase = 'NIGHT') => {
   const alivePlayers = players.filter(p => p.isAlive && p.role !== 'HOST');
   const aliveWolves = alivePlayers.filter(p => p.role === 'WEREWOLF').length;
   const aliveVillagers = alivePlayers.filter(p => p.role !== 'WEREWOLF').length;
@@ -205,7 +205,12 @@ export const checkVictory = (players, currentTurn = 1) => {
     return 'WEREWOLF';
   }
 
-  // 3. Max duration rule: Game ends after 4 nights (when turn > 4). If wolves haven't won after 4 nights, Villagers win!
+  // 3. Max duration rule: Game ends after 4 nights. If wolves haven't won after voting on Day 4, Villagers win!
+  if (currentTurn >= 4 && currentPhase === 'VOTING') {
+    return 'VILLAGER';
+  }
+  
+  // Fallback max duration
   if (currentTurn > 4) {
     return 'VILLAGER';
   }

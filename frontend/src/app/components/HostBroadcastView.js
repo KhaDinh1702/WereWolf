@@ -31,6 +31,10 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
   const phaseLogo = isNight ? '/images/night-logo.png' : isDayOrVote ? '/images/day-logo.png' : '/images/werewolf-logo-small.png';
   const phaseBgImage = isNight ? '/images/night.png' : isDayOrVote ? '/images/day.png' : null;
 
+  const maxTurn = 4;
+  const nightsLeft = maxTurn - (room.currentTurn || 1);
+  const nightsLeftText = room.status === 'FINISHED' || room.status === 'LOBBY' ? '' : ` (CÒN ${nightsLeft} ĐÊM)`;
+
   const handleOptionClick = (key) => {
     if (!currentQuestion) return;
     const qId = currentQuestion.id;
@@ -97,6 +101,7 @@ export default function HostBroadcastView({ room, timeLeft, onCloseHostView, onA
             <span className="text-sm font-semibold text-red-200/80">Giai đoạn:</span>
             <span className="font-bold text-[#e9c349] uppercase text-sm">
               {room.status === 'LOBBY' ? 'SẢNH CHỜ' : room.status === 'FINISHED' ? 'KẾT THÚC' : room.currentPhase === 'NIGHT' ? 'BAN ĐÊM' : room.currentPhase === 'DAY' ? 'BAN NGÀY' : 'BIỂU QUYẾT'}
+              {nightsLeftText}
             </span>
           </div>
 
