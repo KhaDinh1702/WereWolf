@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
+import { CreditCard, MessageCircle, ScrollText, X } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSocket } from '@/context/SocketContext';
 import AboutModal from '@/app/components/AboutModal';
@@ -867,7 +868,7 @@ export default function GameRoomPage() {
               gameContentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
             }}
           >
-            <span className="material-symbols-outlined" aria-hidden="true">playing_cards</span>
+            <CreditCard aria-hidden="true" />
             <span>Vai trò</span>
           </button>
         )}
@@ -879,7 +880,7 @@ export default function GameRoomPage() {
             setIsMobilePanelOpen(true);
           }}
         >
-          <span className="material-symbols-outlined" aria-hidden="true">chat</span>
+          <MessageCircle aria-hidden="true" />
           <span>Trò chuyện</span>
         </button>
         <button
@@ -890,7 +891,7 @@ export default function GameRoomPage() {
             setIsMobilePanelOpen(true);
           }}
         >
-          <span className="material-symbols-outlined" aria-hidden="true">history</span>
+          <ScrollText aria-hidden="true" />
           <span>Nhật ký</span>
         </button>
       </nav>
@@ -934,7 +935,7 @@ export default function GameRoomPage() {
             aria-label="Đóng bảng"
             title="Đóng"
           >
-            <span className="material-symbols-outlined" aria-hidden="true">close</span>
+            <X aria-hidden="true" />
           </button>
         </div>
 

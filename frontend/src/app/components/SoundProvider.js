@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useSyncExternalStore } from 'react';
+import { Volume2, VolumeX } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 
 const VOLUME_KEY = 'werewolf_sound_volume';
 const MUTED_KEY = 'werewolf_sound_muted';
@@ -42,6 +44,8 @@ const saveSoundSettings = ({ volume, isMuted }) => {
 };
 
 export default function SoundProvider({ children }) {
+  const pathname = usePathname();
+  const isRoomRoute = pathname?.startsWith('/room/');
   const buttonAudioRef = useRef(null);
   const bgAudioRef = useRef(null);
   const audioContextRef = useRef(null);
@@ -236,14 +240,14 @@ export default function SoundProvider({ children }) {
   return (
     <>
       {children}
-      <div className="sound-controls fixed bottom-4 left-4 z-40 flex items-center gap-1.5 rounded border border-outline-variant/50 bg-black/75 px-2 py-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.55)] backdrop-blur-sm">
+      <div className={`sound-controls ${isRoomRoute ? 'sound-controls--room' : ''} fixed bottom-4 left-4 z-40 flex items-center gap-1.5 rounded border border-outline-variant/50 bg-black/75 px-2 py-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.55)] backdrop-blur-sm`}>
         <button
           type="button"
           onClick={decreaseVolume}
           disabled={volume === 0}
           aria-label="Giảm âm lượng"
           title="Giảm âm lượng"
-          className="h-8 w-8 border border-outline-variant/40 text-primary hover:border-primary hover:bg-secondary/30 disabled:cursor-not-allowed disabled:opacity-35 font-body-gothic text-base leading-none transition-colors"
+          className="sound-controls__step h-8 w-8 border border-outline-variant/40 text-primary hover:border-primary hover:bg-secondary/30 disabled:cursor-not-allowed disabled:opacity-35 font-body-gothic text-base leading-none transition-colors"
         >
           -
         </button>
@@ -252,13 +256,15 @@ export default function SoundProvider({ children }) {
           onClick={toggleMute}
           aria-label={isMuted ? 'Bật âm thanh' : 'Tắt âm thanh'}
           title={isMuted ? 'Bật âm thanh' : 'Tắt âm thanh'}
-          className={`h-8 w-12 border font-body-gothic text-[11px] leading-none transition-colors ${
+          className={`sound-controls__toggle h-8 w-12 border font-body-gothic text-[11px] leading-none transition-colors ${
             isMuted || volume === 0
               ? 'border-red-900/70 bg-red-950/40 text-red-300'
               : 'border-primary/60 bg-secondary/20 text-primary hover:bg-secondary/40'
           }`}
         >
-          {isMuted || volume === 0 ? 'TẮT' : 'BẬT'}
+          {isMuted || volume === 0
+            ? <VolumeX aria-hidden="true" />
+            : <Volume2 aria-hidden="true" />}
         </button>
         <button
           type="button"
@@ -266,11 +272,11 @@ export default function SoundProvider({ children }) {
           disabled={volume === 1}
           aria-label="Tăng âm lượng"
           title="Tăng âm lượng"
-          className="h-8 w-8 border border-outline-variant/40 text-primary hover:border-primary hover:bg-secondary/30 disabled:cursor-not-allowed disabled:opacity-35 font-body-gothic text-base leading-none transition-colors"
+          className="sound-controls__step h-8 w-8 border border-outline-variant/40 text-primary hover:border-primary hover:bg-secondary/30 disabled:cursor-not-allowed disabled:opacity-35 font-body-gothic text-base leading-none transition-colors"
         >
           +
         </button>
-        <span className="min-w-10 text-center font-body-gothic text-[10px] text-on-surface-variant">
+        <span className="sound-controls__value min-w-10 text-center font-body-gothic text-[10px] text-on-surface-variant">
           {displayVolume}%
         </span>
       </div>
