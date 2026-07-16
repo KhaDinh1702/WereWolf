@@ -229,13 +229,34 @@ export default function SoundProvider({ children }) {
   };
 
   const toggleMute = () => {
+    const nextVolume = volume === 0 ? DEFAULT_VOLUME : volume;
+    const nextMuted = volume === 0 ? false : !isMuted;
+
+    volumeRef.current = nextVolume;
+    mutedRef.current = nextMuted;
+
     saveSoundSettings({
-      volume,
-      isMuted: !isMuted
+      volume: nextVolume,
+      isMuted: nextMuted
     });
+
+    if (!bgAudioRef.current) return;
+
+    bgAudioRef.current.volume = nextVolume;
+    bgAudioRef.current.muted = nextMuted;
+
+    if (nextMuted) {
+      bgAudioRef.current.pause();
+    } else {
+      hasStartedBgRef.current = true;
+      bgAudioRef.current.play().catch(() => {
+        hasStartedBgRef.current = false;
+      });
+    }
   };
 
   const displayVolume = Math.round(volume * 100);
+  const isSoundOff = isMuted || volume === 0;
 
   return (
     <>
@@ -254,15 +275,16 @@ export default function SoundProvider({ children }) {
         <button
           type="button"
           onClick={toggleMute}
-          aria-label={isMuted ? 'Bật âm thanh' : 'Tắt âm thanh'}
-          title={isMuted ? 'Bật âm thanh' : 'Tắt âm thanh'}
+          aria-label={isSoundOff ? 'Bật âm thanh' : 'Tắt âm thanh'}
+          aria-pressed={isSoundOff}
+          title={isSoundOff ? 'Bật âm thanh' : 'Tắt âm thanh'}
           className={`sound-controls__toggle h-8 w-12 border font-body-gothic text-[11px] leading-none transition-colors ${
-            isMuted || volume === 0
+            isSoundOff
               ? 'border-red-900/70 bg-red-950/40 text-red-300'
               : 'border-primary/60 bg-secondary/20 text-primary hover:bg-secondary/40'
           }`}
         >
-          {isMuted || volume === 0
+          {isSoundOff
             ? <VolumeX aria-hidden="true" />
             : <Volume2 aria-hidden="true" />}
         </button>
